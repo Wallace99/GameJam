@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://water/tile_0040.png" type="Texture" id=1]
+[ext_resource path="res://water/tile_0011.png" type="Texture" id=2]
+[ext_resource path="res://water/tile_0010.png" type="Texture" id=3]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="tile_0010" type="Sprite" parent="."]
+position = Vector2( 621.473, 76.2781 )
+texture = ExtResource( 3 )
+
+[node name="tile_0011" type="Sprite" parent="."]
+position = Vector2( 621.473, 76.2781 )
+texture = ExtResource( 2 )
+
+[node name="tile_0040" type="Sprite" parent="."]
+position = Vector2( 621.473, 76.2781 )
+texture = ExtResource( 1 )
