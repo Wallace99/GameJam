@@ -1,0 +1,38 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://tile_0316.png" type="Texture" id=1]
+[ext_resource path="res://tile_0317.png" type="Texture" id=2]
+[ext_resource path="res://tile_0318.png" type="Texture" id=3]
+[ext_resource path="res://torch.gd" type="Script" id=4]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 1 ), ExtResource( 2 ) ],
+"loop": true,
+"name": "burn",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 3 ) ],
+"loop": true,
+"name": "normal",
+"speed": 5.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 4.11214, 7.71613 )
+
+[node name="AnimatedSprite" type="AnimatedSprite"]
+frames = SubResource( 1 )
+animation = "burn"
+frame = 1
+script = ExtResource( 4 )
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+position = Vector2( 0.200649, 8.96242 )
+enabled = true
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2( 0.112873, 0.790119 )
+shape = SubResource( 2 )

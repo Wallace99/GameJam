@@ -4,18 +4,12 @@
 [ext_resource path="res://backgrounds/blue.png" type="Texture" id=2]
 [ext_resource path="res://player.tscn" type="PackedScene" id=3]
 [ext_resource path="res://treeTileset.tres" type="TileSet" id=4]
-[ext_resource path="res://water_tiles.tres" type="TileSet" id=5]
+[ext_resource path="res://NinePatchRect.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Main.gd" type="Script" id=6]
 [ext_resource path="res://GUI.tscn" type="PackedScene" id=7]
-[ext_resource path="res://sunlightv2.tscn" type="PackedScene" id=8]
-
-[sub_resource type="Shader" id=2]
-code = "shader_type spatial;
-
-"
-
-[sub_resource type="ShaderMaterial" id=3]
-shader = SubResource( 2 )
+[ext_resource path="res://addons/water2d/icon.png" type="Texture" id=9]
+[ext_resource path="res://addons/water2d/water2D_material.tres" type="Material" id=10]
+[ext_resource path="res://addons/water2d/Water2D.gd" type="Script" id=11]
 
 [sub_resource type="Animation" id=1]
 resource_name = "day_night_cycle"
@@ -46,6 +40,23 @@ tracks/1/keys = {
 "update": 0,
 "values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 1 ), Color( 0.717647, 0.623529, 0.298039, 1 ), Color( 0.262745, 0.258824, 0.258824, 1 ), Color( 0.262745, 0.258824, 0.258824, 1 ), Color( 0.960784, 0.701961, 0.301961, 1 ) ]
 }
+tracks/2/type = "method"
+tracks/2/path = NodePath("KinematicBody2D")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 30 ),
+"transitions": PoolRealArray( 1, 1 ),
+"values": [ {
+"args": [  ],
+"method": "_start_light_timer"
+}, {
+"args": [  ],
+"method": "_stop_light_timer"
+} ]
+}
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource( 6 )
@@ -55,10 +66,17 @@ script = ExtResource( 6 )
 [node name="GUI" parent="CanvasLayer" instance=ExtResource( 7 )]
 margin_right = 793.0
 
+[node name="NinePatchRect" parent="CanvasLayer" instance=ExtResource( 5 )]
+margin_top = -20.0
+margin_bottom = -20.0
+rect_scale = Vector2( 0.3, 0.3 )
+
 [node name="KinematicBody2D" parent="." instance=ExtResource( 3 )]
 position = Vector2( 30, 0 )
+z_index = -1
 
 [node name="ground" type="TileMap" parent="."]
+z_index = 2
 tile_set = ExtResource( 1 )
 cell_size = Vector2( 21, 21 )
 format = 1
@@ -71,6 +89,7 @@ scroll_base_scale = Vector2( 0.5, 0.5 )
 motion_mirroring = Vector2( 231, 0 )
 
 [node name="Sprite" type="Sprite" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2( 0.149292, 0.447922 )
 scale = Vector2( 3, 3 )
 texture = ExtResource( 2 )
 centered = false
@@ -78,17 +97,11 @@ centered = false
 [node name="CanvasModulate" type="CanvasModulate" parent="ParallaxBackground"]
 
 [node name="trees" type="TileMap" parent="."]
+z_index = 3
 tile_set = ExtResource( 4 )
 cell_size = Vector2( 21, 21 )
 format = 1
 tile_data = PoolIntArray( 25, 11, 0, 41, 1, 0, 65541, 536870923, 0, 65560, 536870922, 0, 65561, 9, 0, 65562, 10, 0, 65577, 2, 0, 65578, 8, 0, 131076, 536870922, 0, 131077, 9, 0, 131078, 10, 0, 131083, 536870923, 0, 131096, 536870922, 0, 131097, 9, 0, 131098, 10, 0, 131112, 536870916, 0, 131113, 536870914, 0, 131120, 536870923, 0, 196612, 536870922, 0, 196613, 9, 0, 196614, 10, 0, 196618, 536870922, 0, 196619, 9, 0, 196620, 10, 0, 196633, 536870913, 0, 196649, 2, 0, 196650, 4, 0, 196655, 536870922, 0, 196656, 536870921, 0, 196657, 10, 0, 262149, 536870913, 0, 262154, 536870922, 0, 262155, 9, 0, 262156, 10, 0, 262168, 536870920, 0, 262169, 536870914, 0, 262185, 0, 0, 262191, 536870922, 0, 262192, 536870921, 0, 262193, 10, 0, 327684, 536870916, 0, 327685, 536870914, 0, 327691, 536870913, 0, 327705, 2, 0, 327706, 4, 0, 327728, 1, 0, 393221, 536870912, 0, 393227, 536870912, 0, 393241, 0, 0, 393264, 0, 0 )
-
-[node name="water" type="TileMap" parent="."]
-material = SubResource( 3 )
-tile_set = ExtResource( 5 )
-cell_size = Vector2( 21, 21 )
-format = 1
-tile_data = PoolIntArray( 458781, 2, 0, 458782, 2, 0, 458783, 2, 0, 458784, 2, 0, 458785, 2, 0, 458786, 2, 0, 458787, 2, 0, 524318, 2, 0, 524319, 2, 0, 524320, 2, 0, 524321, 2, 0, 524322, 2, 0, 524340, 536870914, 0, 524341, 536870914, 0, 524342, 536870914, 0, 524343, 536870914, 0, 524344, 536870914, 0 )
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 
@@ -96,5 +109,32 @@ tile_data = PoolIntArray( 458781, 2, 0, 458782, 2, 0, 458783, 2, 0, 458784, 2, 0
 playback_speed = 0.5
 anims/day_night_cycle = SubResource( 1 )
 
-[node name="light" parent="." instance=ExtResource( 8 )]
-position = Vector2( 69.5027, 1.17469 )
+[node name="Water2D" type="Sprite" parent="."]
+material = ExtResource( 10 )
+position = Vector2( 681.886, 159.532 )
+scale = Vector2( 2.32474, 0.926512 )
+z_index = 1
+texture = ExtResource( 9 )
+script = ExtResource( 11 )
+deformation_speed_1 = Vector2( 0, 1 )
+deformation_speed_2 = Vector2( 0, 0 )
+deformation_strength = Vector2( 0, 0.5 )
+water_color = Color( 0, 0.788235, 1, 0.74902 )
+wave_speed = 0.0
+wave_distance_attenuation = 0.0
+wave_time_attenuation = 0.0
+
+[node name="Water2D2" type="Sprite" parent="."]
+material = ExtResource( 10 )
+position = Vector2( 1150, 159.532 )
+scale = Vector2( 2.29828, 0.926512 )
+z_index = 1
+texture = ExtResource( 9 )
+script = ExtResource( 11 )
+deformation_speed_1 = Vector2( 0, 1 )
+deformation_speed_2 = Vector2( 0, 0 )
+deformation_strength = Vector2( 0, 0.5 )
+water_color = Color( 0, 0.788235, 1, 0.74902 )
+wave_speed = 0.0
+wave_distance_attenuation = 0.0
+wave_time_attenuation = 0.0

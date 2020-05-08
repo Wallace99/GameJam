@@ -6,7 +6,7 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 4.69947, 4.57463 )
 
-[node name="RigidBody2D" type="RigidBody2D"]
+[node name="light" type="RigidBody2D"]
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
