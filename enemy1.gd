@@ -63,6 +63,9 @@ func bounceBack(body, torch):
 	else:
 		velocity.x = SPEED
 	velocity.y = JUMP_POWER/2
+	if abs(torch.global_position.x - global_position.x) < 20:
+		velocity.x * 3
+		velocity.y * 3
 	
 func getDirection(player_position, plants, torches):
 	if plants.size() > 0:
@@ -85,6 +88,9 @@ func getDirection(player_position, plants, torches):
 			getDirectionNoPlants(player_position)
 	else:
 		getDirectionNoPlants(player_position)
+	for area in get_node("Area2D").get_overlapping_areas():
+		if 'enemyRange' in area.name:
+			bounceBack(self, area.get_parent())
 				
 
 

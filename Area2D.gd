@@ -5,32 +5,28 @@ extends Area2D
 # var a = 2
 # var b = "text"
 onready var light = load("res://sunlightv2.tscn")
-onready var score = $"../../CanvasLayer/GUI/HBoxContainer/Counters/Counter/Background/Number"
+onready var seedObject = load("res://seed.tscn")
 onready var lightCount = $"../../CanvasLayer/NinePatchRect/TextureRect/torch/count"
 onready var camera = $"../Camera2D"
-var lights = 0
 var lightsInGame = 0
 var seedsInGame = 0
+const seedTypes = ['mushroom', 'green', 'purple']
+
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	score.set_text(str(lights))
 	randomize()
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
-
-
 func _on_Area2D_body_entered(body):
-	var lights = int(lightCount.text)
-	if 'light' in body.name and lights < 10:
-		lights += 1
-		lightCount.set_text(str(lights))
-		score.set_text(str(lights))
+	if 'light' in body.name and get_parent().getLightCount() < 10:
+		get_parent().addLight()
 		lightsInGame -= 1
+		body.queue_free()
+	elif 'seed' in body.name:
+		get_parent().addSeed(body._getSeedType())
+		seedsInGame -= 1
 		body.queue_free()
 
 
@@ -44,7 +40,12 @@ func _on_Timer_timeout():
 		print("dropped light at: " + str(lightPosition))
 		lightsInGame += 1
 	var chanceOfSeed = randi()%10+1
-	if chanceOfSeed == 10 and seedsInGame < 20:
+	if chanceOfSeed == 10 and seedsInGame < 5:
+		var seedInstance = seedObject.instance()
 		var seedPosition = Vector2(rand_range(camera.limit_left,camera.limit_right), camera.limit_top)
+		seedInstance.set_position(seedPosition)
+		seedInstance._setSeedType(seedTypes[randi() % seedTypes.size()])
+		seedInstance._setTexture()
+		get_tree().get_root().add_child(seedInstance)
 		print("dropped seed at: " + str(seedPosition))
-		lightsInGame += 1
+		seedsInGame += 1

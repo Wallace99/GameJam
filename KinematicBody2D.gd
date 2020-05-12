@@ -10,6 +10,7 @@ var purpleCount = 3
 var greenCount = 3
 var mushroomCount = 3
 var torchCount = 0
+var lightCount = 2
 var food = 100
 var enemies = []
 var plants = []
@@ -30,6 +31,7 @@ onready var greenButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/green/
 onready var mushroomButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/mushroom/count"
 onready var torchButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/torch/count"
 
+onready var lightScore = $"../CanvasLayer/GUI/HBoxContainer/Counters/Counter/Background/Number"
 
 onready var purpleImage = load("res://plants/tile_0016.png")
 onready var greenImage = load("res://plants/tile_0017.png")
@@ -47,6 +49,8 @@ func _ready():
 	purpleButtonCount.set_text(str(purpleCount))
 	greenButtonCount.set_text(str(greenCount))
 	mushroomButtonCount.set_text(str(mushroomCount))
+	torchButtonCount.set_text(str(lightCount/2))
+	lightScore.set_text(str(lightCount))
 
 	purpleButton.connect("pressed", self, "_select_purple")
 	greenButton.connect("pressed", self, "_select_green")
@@ -122,8 +126,8 @@ func _select_mushroom():
 	print("mushroom")
 	
 func _select_torch():
-	torchCount = int(torchButtonCount.get_text())
-	if torchCount > 0:
+	#torchCount = int(torchButtonCount.get_text())
+	if lightCount > 1:
 		selectedItem = "torch"
 		Input.set_custom_mouse_cursor(torchImage)
 	print("torch")
@@ -151,11 +155,12 @@ func place_item(item, clickPosition):
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
 	elif item == "torch":
-		torchCount = int(torchButtonCount.get_text())
+		#torchCount = int(torchButtonCount.get_text())
 		placeTorch(clickPosition)
-		torchCount -= 1
-		torchButtonCount.text = str(torchCount)
-		if torchCount <= 0:
+		lightCount -= 2
+		lightScore.text = str(lightCount)
+		torchButtonCount.text = str(lightCount/2)
+		if lightCount <= 1:
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
 		
@@ -172,10 +177,13 @@ func placePlant(plantTexture, clickPosition):
 func placeTorch(clickPosition):
 	var torchInstance = torch.instance()
 	torchInstance.set_position(clickPosition)
-	torchInstance.get_node("torchArea").connect("removed", self, "removeTorch")
+	torchInstance.get_node("Area2D").connect("removed", self, "removeTorch")
 	torches.append(torchInstance)
 	for enemy in enemies:
-		enemy.connectTorchEnteredSignalFromPlayer("body_entered", torchInstance, "bounceBack", [torchInstance])
+		enemy.connectEnteredSignalFromPlayer("body_entered", torchInstance.get_node("enemyRange"), "bounceBack", [torchInstance])
+	for body in torchInstance.get_node("Area2D").get_overlapping_bodies():
+		if 'enemy' in body.name:
+			body.bounceBack(body, torchInstance)
 	get_tree().get_root().add_child(torchInstance)
 	
 func _eatPlant(plant):
@@ -196,6 +204,10 @@ func removeTorch(torch):
 	else:
 		print("Error: torch not in torch list")
 	torch.queue_free()
+	lightCount += 1
+	lightScore.text = str(lightCount)
+	#torchCount += 1
+	torchButtonCount.text = str(lightCount/2)
 	
 
 func removeDestroyedPlant(body, plant):
@@ -236,6 +248,25 @@ func _despawnEnemies():
 		#enemy.queue_free()
 		pass
 	#enemies = []
+	
+func addSeed(seedType):
+	if seedType == 'purple' and purpleCount < 10:
+		purpleCount += 1
+		purpleButtonCount.text = str(purpleCount)
+	elif seedType == 'green' and greenCount < 10:
+		greenCount += 1
+		greenButtonCount.text = str(greenCount)
+	elif seedType == 'mushroom' and mushroomCount < 10:
+		mushroomCount += 1
+		mushroomButtonCount.text = str(mushroomCount)
+		
+func addLight():
+	lightCount += 1
+	lightScore.text = str(lightCount)
+	torchButtonCount.text = str(lightCount / 2)
+	
+func getLightCount():
+	return lightCount
 	
 
 func _on_PositionUpdateTimer_timeout():

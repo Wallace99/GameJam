@@ -7,7 +7,7 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 10, 3.90073 )
 
-[node name="Sprite" type="Sprite"]
+[node name="plant" type="Sprite"]
 texture = ExtResource( 2 )
 script = ExtResource( 1 )
 

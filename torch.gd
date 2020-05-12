@@ -36,5 +36,3 @@ func outOfLight():
 	emit_signal("stopTimer")
 	play("normal")
 	$Light2D.enabled = false
-
-

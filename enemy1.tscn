@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://enemies/tile_0113.png" type="Texture" id=1]
 [ext_resource path="res://enemies/tile_0118.png" type="Texture" id=2]
@@ -28,7 +28,10 @@ animations = [ {
 radius = 8.15129
 height = 7.0357
 
-[node name="KinematicBody2D" type="KinematicBody2D"]
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 9.83968, 13.0346 )
+
+[node name="enemy" type="KinematicBody2D"]
 script = ExtResource( 4 )
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
@@ -52,4 +55,9 @@ cast_to = Vector2( -15, 0 )
 
 [node name="bounceBackTimer" type="Timer" parent="."]
 one_shot = true
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource( 3 )
 [connection signal="timeout" from="bounceBackTimer" to="." method="_on_bounceBackTimer_timeout"]
