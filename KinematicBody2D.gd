@@ -11,7 +11,12 @@ var greenCount = 3
 var mushroomCount = 3
 var torchCount = 0
 var food = 100
+var enemies = []
+var plants = []
+var torches = []
+var nightCounter = 1
 signal isDay(day)
+signal moved(globalPosition, plants, torches)
 
 onready var purpleButton = $"../CanvasLayer/NinePatchRect/TextureRect/purple"
 onready var greenButton = $"../CanvasLayer/NinePatchRect/TextureRect/green"
@@ -35,6 +40,7 @@ onready var placer = $"placer"
 
 onready var plant = load("res://plant.tscn")
 onready var torch = load("res://torch.tscn")
+onready var enemy = load("res://enemy1.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -49,7 +55,7 @@ func _ready():
 	
 
 func _input(event):
-	if event.is_action_pressed("ui_accept") and $RayCast2D.is_colliding():
+	if event.is_action_pressed("jump") and $RayCast2D.is_colliding():
 		velocity.y = JUMP_POWER
 	if event.is_action_pressed("mouseRight"):
 		Input.set_custom_mouse_cursor(null)
@@ -64,11 +70,11 @@ func _input(event):
 func _physics_process(delta):
 	food -= 0.01
 	foodBar.set_value(int(food))
-	if Input.is_action_pressed("ui_right"):
+	if Input.is_action_pressed("right"):
 		velocity.x = SPEED
 		$AnimatedSprite.play("walk")
 		$AnimatedSprite.flip_h = false
-	elif Input.is_action_pressed("ui_left"):
+	elif Input.is_action_pressed("left"):
 		velocity.x = -SPEED
 		$AnimatedSprite.play("walk")
 		$AnimatedSprite.flip_h = true
@@ -91,62 +97,146 @@ func _start_light_timer():
 func _stop_light_timer():
 	emit_signal("isDay", false)
 	
+func _start_torches():
+	emit_signal("startTorches")
+
+func _stop_torches():
+	emit_signal("stopTorches")
+	
 func _select_purple():
-	selectedItem = "purple"
 	if purpleCount > 0:
+		selectedItem = "purple"
 		Input.set_custom_mouse_cursor(purpleImage)
+	print("purple")
 	
 func _select_green():
-	selectedItem = "green"
 	if greenCount > 0:
+		selectedItem = "green"
 		Input.set_custom_mouse_cursor(greenImage)
+	print("green")
 	
 func _select_mushroom():
-	selectedItem = "mushroom"
 	if mushroomCount > 0:
+		selectedItem = "mushroom"
 		Input.set_custom_mouse_cursor(mushroomImage)
+	print("mushroom")
 	
 func _select_torch():
-	selectedItem = "torch"
 	torchCount = int(torchButtonCount.get_text())
 	if torchCount > 0:
+		selectedItem = "torch"
 		Input.set_custom_mouse_cursor(torchImage)
+	print("torch")
 		
 func place_item(item, clickPosition):
 	if item == "purple":
 		placePlant(purpleImage, clickPosition)
-		updateCount(purpleCount, purpleButtonCount)
+		purpleCount -= 1
+		purpleButtonCount.text = str(purpleCount)
+		if purpleCount <= 0:
+			Input.set_custom_mouse_cursor(null)
+			selectedItem = null
 	elif item == "green":
 		placePlant(greenImage, clickPosition)
-		updateCount(greenCount, greenButtonCount)
+		greenCount -= 1
+		greenButtonCount.text = str(greenCount)
+		if greenCount <= 0:
+			Input.set_custom_mouse_cursor(null)
+			selectedItem = null
 	elif item == "mushroom":
 		placePlant(mushroomImage, clickPosition)
-		updateCount(mushroomCount, mushroomButtonCount)
+		mushroomCount -= 1
+		mushroomButtonCount.text = str(mushroomCount)
+		if mushroomCount <= 0:
+			Input.set_custom_mouse_cursor(null)
+			selectedItem = null
 	elif item == "torch":
+		torchCount = int(torchButtonCount.get_text())
 		placeTorch(clickPosition)
-		updateCount(torchCount, torchButtonCount)
+		torchCount -= 1
+		torchButtonCount.text = str(torchCount)
+		if torchCount <= 0:
+			Input.set_custom_mouse_cursor(null)
+			selectedItem = null
 		
 func placePlant(plantTexture, clickPosition):
 	var plantInstance = plant.instance()
 	plantInstance.set_texture(plantTexture)
 	plantInstance.set_position(clickPosition)
 	plantInstance.get_node("Area2D").connect("eaten", self, "_eatPlant")
+	plantInstance.get_node("Area2D").connect("body_entered", self, "removeDestroyedPlant", [plantInstance])
+	plants.append(plantInstance)
 	get_tree().get_root().add_child(plantInstance)
 	
-func updateCount(count, buttonCount):
-	count -= 1
-	buttonCount.text = str(count)
-	if count == 0:
-		Input.set_custom_mouse_cursor(null)
 	
 func placeTorch(clickPosition):
 	var torchInstance = torch.instance()
 	torchInstance.set_position(clickPosition)
+	torchInstance.get_node("torchArea").connect("removed", self, "removeTorch")
+	torches.append(torchInstance)
+	for enemy in enemies:
+		enemy.connectTorchEnteredSignalFromPlayer("body_entered", torchInstance, "bounceBack", [torchInstance])
 	get_tree().get_root().add_child(torchInstance)
 	
 func _eatPlant(plant):
+	if plant in plants:
+		print("ate " + str(plant))
+		plants.erase(plant)
+	else:
+		print("Error: plant not in plants list")
 	food = foodBar.get_value()
 	if food < 100:
 		plant.queue_free()
 		food += 20
 		foodBar.set_value(food)
+
+func removeTorch(torch):
+	if torch in torches:
+		torches.erase(torch)
+	else:
+		print("Error: torch not in torch list")
+	torch.queue_free()
+	
+
+func removeDestroyedPlant(body, plant):
+	if !(body in enemies):
+		return
+	if plant in plants:
+		plants.erase(plant)
+	else:
+		print("Error: plant not in plants list")
+
+func _spawnEnemies():
+	for i in range(nightCounter * 2):
+		randomize()
+		var enemyPosition = Vector2(0,0)
+		var toCloseToLight = true
+		while toCloseToLight:
+			enemyPosition = Vector2(rand_range($Camera2D.limit_left, $Camera2D.limit_right), $Camera2D.limit_top)
+			if torches.size() == 0:
+				toCloseToLight = false
+			for torch in torches:
+				if abs(torch.get_global_position().x - enemyPosition.x) < 50:
+					toCloseToLight = true
+					break
+				toCloseToLight = false
+		var enemyInstance = enemy.instance() 
+		print("placed enemy at " + str(enemyPosition))
+		enemyInstance.set_position(enemyPosition)
+		for torch in torches:
+			enemyInstance.connectEnteredSignalFromPlayer("body_entered", torch.get_node("enemyRange"), "bounceBack", [torch])
+		for plant in plants:
+			enemyInstance.connectEnteredSignalFromPlayer("body_entered", plant.get_node("Area2D"), "destroyPlant", [plant])
+		enemyInstance.connectSignalFromPlayer("moved", self, "getDirection")
+		enemies.append(enemyInstance) 
+		get_tree().get_root().add_child(enemyInstance)
+	
+func _despawnEnemies():
+	for enemy in enemies:
+		#enemy.queue_free()
+		pass
+	#enemies = []
+	
+
+func _on_PositionUpdateTimer_timeout():
+	emit_signal("moved", global_position, plants, torches)

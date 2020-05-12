@@ -1,0 +1,55 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://enemies/tile_0113.png" type="Texture" id=1]
+[ext_resource path="res://enemies/tile_0118.png" type="Texture" id=2]
+[ext_resource path="res://enemies/tile_0119.png" type="Texture" id=3]
+[ext_resource path="res://enemy1.gd" type="Script" id=4]
+[ext_resource path="res://enemies/tile_0111.png" type="Texture" id=5]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 2 ), ExtResource( 3 ) ],
+"loop": true,
+"name": "walk",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 1 ) ],
+"loop": true,
+"name": "hurt",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 5 ) ],
+"loop": true,
+"name": "surprise",
+"speed": 5.0
+} ]
+
+[sub_resource type="CapsuleShape2D" id=2]
+radius = 8.15129
+height = 7.0357
+
+[node name="KinematicBody2D" type="KinematicBody2D"]
+script = ExtResource( 4 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+frames = SubResource( 1 )
+animation = "surprise"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource( 2 )
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 0, 15 )
+
+[node name="wallCheckRight" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 15, 0 )
+
+[node name="wallCheckLeft" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( -15, 0 )
+
+[node name="bounceBackTimer" type="Timer" parent="."]
+one_shot = true
+[connection signal="timeout" from="bounceBackTimer" to="." method="_on_bounceBackTimer_timeout"]
