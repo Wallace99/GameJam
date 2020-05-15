@@ -42,7 +42,6 @@ texture = ExtResource( 7 )
 polygon = PoolVector2Array( 10.5, 10.5, -10.5, 10.5, -10.5, -10.5, 10.5, -10.5 )
 
 [node name="tile_0123" type="Sprite" parent="."]
-visible = false
 position = Vector2( 3356.97, 2062.16 )
 texture = ExtResource( 4 )
 

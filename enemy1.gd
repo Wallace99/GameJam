@@ -28,12 +28,14 @@ func _physics_process(delta):
 		$AnimatedSprite.flip_h = true
 		velocity.x = -SPEED
 		if $wallCheckLeft.is_colliding():
+			$jumpAudio.play()
 			velocity.y = JUMP_POWER
 	elif direction == 'right' and $RayCast2D.is_colliding() and !bouncingBack:
 		$AnimatedSprite.play("walk")
 		$AnimatedSprite.flip_h = false
 		velocity.x = SPEED
 		if $wallCheckRight.is_colliding():
+			$jumpAudio.play()
 			velocity.y = JUMP_POWER
 	
 	if !$RayCast2D.is_colliding():
@@ -48,15 +50,12 @@ func connectEnteredSignalFromPlayer(signalToConnect, targetArea, function, targe
 func connectSignalFromPlayer(signalToConnect, target, function):
 	target.connect(signalToConnect, self, function)
 	
-func destroyPlant(body, plant):
-	if body != self:
-		return
-	plant.queue_free()
 	
 func bounceBack(body, torch):
 	if body != self or !torch.get_node("Light2D").enabled:
 		return
 	bouncingBack = true
+	$jumpAudio.play()
 	$bounceBackTimer.start()
 	if torch.global_position.x > global_position.x:
 		velocity.x = -SPEED
@@ -64,8 +63,8 @@ func bounceBack(body, torch):
 		velocity.x = SPEED
 	velocity.y = JUMP_POWER/2
 	if abs(torch.global_position.x - global_position.x) < 20:
-		velocity.x * 3
-		velocity.y * 3
+		velocity.x *= 3
+		velocity.y *= 3
 	
 func getDirection(player_position, plants, torches):
 	if plants.size() > 0:

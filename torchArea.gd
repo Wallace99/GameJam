@@ -5,6 +5,7 @@ extends Area2D
 # var a = 2
 # var b = "text"
 signal removed(torch)
+signal relight(torch)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -16,5 +17,9 @@ func _ready():
 #	pass
 
 func _input_event(viewport, event, shape_idx):
-	if event is InputEventMouseButton and event.button_index == BUTTON_RIGHT and event.is_pressed():
-		emit_signal("removed", get_parent())
+	if event is InputEventMouseButton and event.is_pressed():
+		if event.button_index == BUTTON_RIGHT:
+			emit_signal("removed", get_parent())
+		elif event.button_index == BUTTON_LEFT:
+			emit_signal("relight", get_parent())
+	

@@ -4,18 +4,20 @@ var velocity = Vector2()
 const SPEED = 60
 const GRAVITY = 5
 const JUMP_POWER = -150
+const FLOOR_DETECT_DISTANCE = 20.0
 var collision
 var selectedItem = null
-var purpleCount = 3
-var greenCount = 3
-var mushroomCount = 3
+var purpleCount = 0
+var greenCount = 1
+var mushroomCount = 0
 var torchCount = 0
-var lightCount = 2
+var lightCount = 0
 var food = 100
 var enemies = []
 var plants = []
 var torches = []
 var nightCounter = 1
+var overlappedPlantArea = 0
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
@@ -32,10 +34,21 @@ onready var mushroomButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/mus
 onready var torchButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/torch/count"
 
 onready var lightScore = $"../CanvasLayer/GUI/HBoxContainer/Counters/Counter/Background/Number"
+onready var dayMessage = $"../CanvasLayer/DayAnnoucement"
 
-onready var purpleImage = load("res://plants/tile_0016.png")
-onready var greenImage = load("res://plants/tile_0017.png")
-onready var mushroomImage = load("res://plants/tile_0107.png")
+onready var purpleImage = load("res://plants/purple.png")
+onready var greenImage = load("res://plants/green.png")
+onready var mushroomImage = load("res://plants/mushroom.png")
+onready var purpleImageBig= load("res://plants/purple_big.png")
+onready var greenImageBig = load("res://plants/green_big.png")
+onready var mushroomImageBig = load("res://plants/mushroom_big.png")
+onready var purpleImageSmall = load("res://plants/purple_small.png")
+onready var greenImageSmall = load("res://plants/green_small.png")
+onready var mushroomImageSmall = load("res://plants/mushroom_small.png")
+
+onready var waterArea1 = $"../Water2D/Area2D"
+onready var waterArea2 = $"../Water2D2/Area2D"
+
 onready var torchImage = load("res://tile_0316.png")
 
 onready var placer = $"placer"
@@ -57,9 +70,15 @@ func _ready():
 	mushroomButton.connect("pressed", self, "_select_mushroom")
 	torchButton.connect("pressed", self, "_select_torch")
 	
+	waterArea1.connect("mouse_entered", self, "incrementOverlappingPlacing")
+	waterArea1.connect("mouse_exited", self, "decrementOverlappingPlacing")
+	waterArea2.connect("mouse_entered", self, "incrementOverlappingPlacing")
+	waterArea2.connect("mouse_exited", self, "decrementOverlappingPlacing")
+	
 
 func _input(event):
 	if event.is_action_pressed("jump") and $RayCast2D.is_colliding():
+		$jumpAudio.play()
 		velocity.y = JUMP_POWER
 	if event.is_action_pressed("mouseRight"):
 		Input.set_custom_mouse_cursor(null)
@@ -67,12 +86,13 @@ func _input(event):
 	
 	if event.is_action_pressed("mouseLeft") and selectedItem != null:
 		var clickPosition = get_global_mouse_position()
-		place_item(selectedItem, get_global_mouse_position())
+		clickPosition.y = 0
+		place_item(selectedItem, clickPosition)
 		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
-	food -= 0.01
+	food -= 0.01 * nightCounter
 	foodBar.set_value(int(food))
 	if Input.is_action_pressed("right"):
 		velocity.x = SPEED
@@ -92,14 +112,16 @@ func _physics_process(delta):
 	if !$RayCast2D.is_colliding():
 		$AnimatedSprite.play("suprise")
 		velocity.y += GRAVITY
+	
 		
-	collision = move_and_slide(velocity)
+		
+	collision = move_and_slide(velocity, Vector2.UP, true, 4, 1.7)
 
 func _start_light_timer():
-	emit_signal("isDay", true)
+	get_node("Area2D/Timer").start()
 	
 func _stop_light_timer():
-	emit_signal("isDay", false)
+	get_node("Area2D/Timer").stop()
 	
 func _start_torches():
 	emit_signal("startTorches")
@@ -126,48 +148,63 @@ func _select_mushroom():
 	print("mushroom")
 	
 func _select_torch():
-	#torchCount = int(torchButtonCount.get_text())
 	if lightCount > 1:
 		selectedItem = "torch"
 		Input.set_custom_mouse_cursor(torchImage)
 	print("torch")
 		
 func place_item(item, clickPosition):
+	if item == "torch":
+		placeTorch(clickPosition)
+		$placeAudio.play()
+		lightCount -= 2
+		lightScore.text = str(lightCount)
+		if lightCount > 0:
+			torchButtonCount.text = str(lightCount/2)
+		else:
+			torchButtonCount.text = str(0)
+		if lightCount <= 1:
+			Input.set_custom_mouse_cursor(null)
+			selectedItem = null
+	if overlappedPlantArea != 0:
+		return
 	if item == "purple":
-		placePlant(purpleImage, clickPosition)
+		placePlant(item, clickPosition)
 		purpleCount -= 1
 		purpleButtonCount.text = str(purpleCount)
 		if purpleCount <= 0:
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
 	elif item == "green":
-		placePlant(greenImage, clickPosition)
+		placePlant(item, clickPosition)
 		greenCount -= 1
 		greenButtonCount.text = str(greenCount)
 		if greenCount <= 0:
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
 	elif item == "mushroom":
-		placePlant(mushroomImage, clickPosition)
+		placePlant(item, clickPosition)
 		mushroomCount -= 1
 		mushroomButtonCount.text = str(mushroomCount)
 		if mushroomCount <= 0:
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
-	elif item == "torch":
-		#torchCount = int(torchButtonCount.get_text())
-		placeTorch(clickPosition)
-		lightCount -= 2
-		lightScore.text = str(lightCount)
-		torchButtonCount.text = str(lightCount/2)
-		if lightCount <= 1:
-			Input.set_custom_mouse_cursor(null)
-			selectedItem = null
 		
-func placePlant(plantTexture, clickPosition):
+func placePlant(plantType, clickPosition):
+	$placeAudio.play()
 	var plantInstance = plant.instance()
-	plantInstance.set_texture(plantTexture)
+	var sizes = []
+	if plantType == 'green':
+		sizes = [greenImageSmall, greenImage, greenImageBig]
+	elif plantType == 'mushroom':
+		sizes = [mushroomImageSmall, mushroomImage, mushroomImageBig]
+	elif plantType == 'purple':
+		sizes = [purpleImageSmall, purpleImage, purpleImageBig]
+	plantInstance.set_sizes(sizes)
+	plantInstance.setPlantImage(plantType)
 	plantInstance.set_position(clickPosition)
+	plantInstance.get_node("spacingArea").connect("mouse_entered", self, "incrementOverlappingPlacing")
+	plantInstance.get_node("spacingArea").connect("mouse_exited", self, "decrementOverlappingPlacing")
 	plantInstance.get_node("Area2D").connect("eaten", self, "_eatPlant")
 	plantInstance.get_node("Area2D").connect("body_entered", self, "removeDestroyedPlant", [plantInstance])
 	plants.append(plantInstance)
@@ -178,6 +215,7 @@ func placeTorch(clickPosition):
 	var torchInstance = torch.instance()
 	torchInstance.set_position(clickPosition)
 	torchInstance.get_node("Area2D").connect("removed", self, "removeTorch")
+	torchInstance.get_node("Area2D").connect("relight", self, "relightTorch")
 	torches.append(torchInstance)
 	for enemy in enemies:
 		enemy.connectEnteredSignalFromPlayer("body_entered", torchInstance.get_node("enemyRange"), "bounceBack", [torchInstance])
@@ -186,37 +224,72 @@ func placeTorch(clickPosition):
 			body.bounceBack(body, torchInstance)
 	get_tree().get_root().add_child(torchInstance)
 	
+func incrementOverlappingPlacing():
+	overlappedPlantArea += 1
+	
+func decrementOverlappingPlacing():
+	overlappedPlantArea -= 1	
+	
 func _eatPlant(plant):
+	food = foodBar.get_value()
+	if food >= 100 or selectedItem != null:
+		return
 	if plant in plants:
+		$eatAudio.play()
+		if plant.get_growth() > 10:
+			give_seed_back(plant.get_plant_type())
 		print("ate " + str(plant))
 		plants.erase(plant)
+		plant.queue_free()
+		food += plant.get_growth()
+		foodBar.set_value(food)
+		overlappedPlantArea -= 1
 	else:
 		print("Error: plant not in plants list")
-	food = foodBar.get_value()
-	if food < 100:
-		plant.queue_free()
-		food += 20
-		foodBar.set_value(food)
+
+func give_seed_back(plant_type):
+	if plant_type == 'green' and greenCount < 10:
+		greenCount += 1
+		greenButtonCount.text = str(greenCount)
+	elif plant_type == 'purple' and purpleCount < 10:
+		purpleCount += 1
+		purpleButtonCount.text = str(purpleCount)
+	elif plant_type == 'mushroom' and mushroomCount < 10:
+		mushroomCount += 1
+		mushroomButtonCount.text = str(mushroomCount)
 
 func removeTorch(torch):
 	if torch in torches:
 		torches.erase(torch)
+		torch.queue_free()
+		lightCount += 1
+		lightScore.text = str(lightCount)
+		torchButtonCount.text = str(lightCount/2)
 	else:
 		print("Error: torch not in torch list")
-	torch.queue_free()
-	lightCount += 1
-	lightScore.text = str(lightCount)
-	#torchCount += 1
-	torchButtonCount.text = str(lightCount/2)
 	
+	
+func relightTorch(torch):
+	if lightCount > 0 and selectedItem == null:
+		torch.get_node("TextureProgress").value = 100
+		torch.get_node("Timer").start()
+		torch.play("burn")
+		torch.get_node("Light2D").enabled = true
+		lightCount -= 1
+		lightScore.text = str(lightCount)
+		if lightCount > 0:
+			torchButtonCount.text = str(lightCount/2)
 
 func removeDestroyedPlant(body, plant):
 	if !(body in enemies):
 		return
 	if plant in plants:
+		body.get_node("eatAudio").play()
 		plants.erase(plant)
+		plant.queue_free()
 	else:
 		print("Error: plant not in plants list")
+		print(plants)
 
 func _spawnEnemies():
 	for i in range(nightCounter * 2):
@@ -237,19 +310,22 @@ func _spawnEnemies():
 		enemyInstance.set_position(enemyPosition)
 		for torch in torches:
 			enemyInstance.connectEnteredSignalFromPlayer("body_entered", torch.get_node("enemyRange"), "bounceBack", [torch])
-		for plant in plants:
-			enemyInstance.connectEnteredSignalFromPlayer("body_entered", plant.get_node("Area2D"), "destroyPlant", [plant])
 		enemyInstance.connectSignalFromPlayer("moved", self, "getDirection")
 		enemies.append(enemyInstance) 
 		get_tree().get_root().add_child(enemyInstance)
 	
 func _despawnEnemies():
 	for enemy in enemies:
-		#enemy.queue_free()
-		pass
-	#enemies = []
+		enemy.queue_free()
+	enemies = []
+	
+func incrementDay():
+	nightCounter += 1
+	dayMessage.text = "Day " + str(nightCounter)
+	
 	
 func addSeed(seedType):
+	$coinAudio.play()
 	if seedType == 'purple' and purpleCount < 10:
 		purpleCount += 1
 		purpleButtonCount.text = str(purpleCount)
@@ -261,6 +337,7 @@ func addSeed(seedType):
 		mushroomButtonCount.text = str(mushroomCount)
 		
 func addLight():
+	$coinAudio.play()
 	lightCount += 1
 	lightScore.text = str(lightCount)
 	torchButtonCount.text = str(lightCount / 2)

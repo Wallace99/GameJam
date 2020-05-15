@@ -1,13 +1,20 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://enemies/tile_0113.png" type="Texture" id=1]
 [ext_resource path="res://enemies/tile_0118.png" type="Texture" id=2]
 [ext_resource path="res://enemies/tile_0119.png" type="Texture" id=3]
 [ext_resource path="res://enemy1.gd" type="Script" id=4]
 [ext_resource path="res://enemies/tile_0111.png" type="Texture" id=5]
+[ext_resource path="res://sounds/grunt_04.ogg" type="AudioStream" id=6]
+[ext_resource path="res://sounds/eat_04.ogg" type="AudioStream" id=7]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
+"frames": [ ExtResource( 5 ) ],
+"loop": true,
+"name": "surprise",
+"speed": 5.0
+}, {
 "frames": [ ExtResource( 2 ), ExtResource( 3 ) ],
 "loop": true,
 "name": "walk",
@@ -16,11 +23,6 @@ animations = [ {
 "frames": [ ExtResource( 1 ) ],
 "loop": true,
 "name": "hurt",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 5 ) ],
-"loop": true,
-"name": "surprise",
 "speed": 5.0
 } ]
 
@@ -44,14 +46,17 @@ shape = SubResource( 2 )
 [node name="RayCast2D" type="RayCast2D" parent="."]
 enabled = true
 cast_to = Vector2( 0, 15 )
+collision_mask = 6
 
 [node name="wallCheckRight" type="RayCast2D" parent="."]
 enabled = true
 cast_to = Vector2( 15, 0 )
+collision_mask = 6
 
 [node name="wallCheckLeft" type="RayCast2D" parent="."]
 enabled = true
 cast_to = Vector2( -15, 0 )
+collision_mask = 6
 
 [node name="bounceBackTimer" type="Timer" parent="."]
 one_shot = true
@@ -60,4 +65,10 @@ one_shot = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource( 3 )
+
+[node name="jumpAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 6 )
+
+[node name="eatAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 7 )
 [connection signal="timeout" from="bounceBackTimer" to="." method="_on_bounceBackTimer_timeout"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://character/tile_0020_1.png" type="Texture" id=1]
 [ext_resource path="res://character/tile_0023.png" type="Texture" id=2]
@@ -14,6 +14,10 @@
 [ext_resource path="res://Area2D.gd" type="Script" id=12]
 [ext_resource path="res://Timer.gd" type="Script" id=13]
 [ext_resource path="res://PositionUpdateTimer.gd" type="Script" id=14]
+[ext_resource path="res://sounds/jump01.ogg" type="AudioStream" id=15]
+[ext_resource path="res://sounds/coin01.ogg" type="AudioStream" id=16]
+[ext_resource path="res://sounds/eat_01.ogg" type="AudioStream" id=17]
+[ext_resource path="res://sounds/plop.wav" type="AudioStream" id=18]
 
 [sub_resource type="CapsuleShape2D" id=1]
 radius = 7.46051
@@ -21,6 +25,11 @@ height = 7.79165
 
 [sub_resource type="SpriteFrames" id=2]
 animations = [ {
+"frames": [ ExtResource( 5 ) ],
+"loop": true,
+"name": "suprise",
+"speed": 5.0
+}, {
 "frames": [ ExtResource( 9 ), ExtResource( 10 ) ],
 "loop": true,
 "name": "climb",
@@ -29,11 +38,6 @@ animations = [ {
 "frames": [ ExtResource( 8 ) ],
 "loop": true,
 "name": "stoop",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 5 ) ],
-"loop": true,
-"name": "suprise",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 11 ), ExtResource( 4 ) ],
@@ -79,10 +83,12 @@ editor_draw_limits = true
 [node name="RayCast2D" type="RayCast2D" parent="."]
 enabled = true
 cast_to = Vector2( 0, 15 )
+collision_mask = 6
 
 [node name="RayCast2D_up" type="RayCast2D" parent="."]
 enabled = true
 cast_to = Vector2( 0, -15 )
+collision_mask = 2
 
 [node name="Area2D" type="Area2D" parent="."]
 script = ExtResource( 12 )
@@ -100,6 +106,18 @@ enabled = true
 [node name="PositionUpdateTimer" type="Timer" parent="."]
 autostart = true
 script = ExtResource( 14 )
+
+[node name="jumpAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 15 )
+
+[node name="coinAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 16 )
+
+[node name="eatAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 17 )
+
+[node name="placeAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 18 )
 [connection signal="isDay" from="." to="Area2D/Timer" method="_on_KinematicBody2D_isDay"]
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_Area2D_body_entered"]
 [connection signal="timeout" from="Area2D/Timer" to="Area2D" method="_on_Timer_timeout"]

@@ -31,8 +31,8 @@ func _on_Area2D_body_entered(body):
 
 
 func _on_Timer_timeout():
-	var chanceOfLight = randi()%3+1
-	if chanceOfLight == 2 and lightsInGame < 20:
+	var chanceOfLight = randi()%10+1
+	if chanceOfLight == 2 and lightsInGame < 16:
 		var lightInstance = light.instance()
 		var lightPosition = Vector2(rand_range(camera.limit_left,camera.limit_right), camera.limit_top)
 		lightInstance.set_position(lightPosition)

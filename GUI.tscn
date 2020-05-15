@@ -6,11 +6,11 @@
 [ext_resource path="res://Comfortaa-Bold.ttf" type="DynamicFontData" id=5]
 [ext_resource path="res://label_HP_bg.png" type="Texture" id=6]
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=1]
 size = 24
 font_data = ExtResource( 5 )
 
-[sub_resource type="DynamicFont" id=1]
+[sub_resource type="DynamicFont" id=2]
 size = 24
 font_data = ExtResource( 5 )
 
@@ -58,7 +58,7 @@ margin_left = 17.6803
 margin_top = 10.4977
 margin_right = 81.6803
 margin_bottom = 38.4977
-custom_fonts/font = SubResource( 2 )
+custom_fonts/font = SubResource( 1 )
 text = "Food"
 align = 1
 valign = 1
@@ -109,7 +109,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 7.0
 margin_right = -7.62939e-06
-custom_fonts/font = SubResource( 1 )
+custom_fonts/font = SubResource( 2 )
 text = "10"
 valign = 1
 __meta__ = {
