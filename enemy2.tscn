@@ -1,0 +1,65 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://enemy2.gd" type="Script" id=1]
+[ext_resource path="res://enemies/tile_0472.png" type="Texture" id=2]
+[ext_resource path="res://enemies/tile_0471.png" type="Texture" id=3]
+[ext_resource path="res://enemies/tile_0470.png" type="Texture" id=4]
+[ext_resource path="res://sounds/eat_04.ogg" type="AudioStream" id=5]
+[ext_resource path="res://sounds/grunt_04.ogg" type="AudioStream" id=6]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 4 ), ExtResource( 3 ), ExtResource( 2 ) ],
+"loop": true,
+"name": "walk",
+"speed": 5.0
+} ]
+
+[sub_resource type="CapsuleShape2D" id=2]
+radius = 9.75479
+height = 3.14534
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 9.83968, 13.0346 )
+
+[node name="enemy2" type="KinematicBody2D"]
+script = ExtResource( 1 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+frames = SubResource( 1 )
+animation = "walk"
+frame = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0.0848923, 2.88615 )
+shape = SubResource( 2 )
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 0, 15 )
+collision_mask = 6
+
+[node name="wallCheckRight" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 15, 0 )
+collision_mask = 6
+
+[node name="wallCheckLeft" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( -15, 0 )
+collision_mask = 6
+
+[node name="bounceBackTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource( 3 )
+
+[node name="jumpAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 6 )
+
+[node name="eatAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 5 )
+[connection signal="timeout" from="bounceBackTimer" to="." method="_on_bounceBackTimer_timeout"]

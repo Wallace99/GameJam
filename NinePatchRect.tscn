@@ -11,3 +11,4 @@ __meta__ = {
 }
 
 [node name="TextureRect" parent="." instance=ExtResource( 2 )]
+margin_right = 1079.0

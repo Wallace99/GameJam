@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://dock.png" type="Texture" id=1]
 [ext_resource path="res://plants/purple.png" type="Texture" id=2]
 [ext_resource path="res://tile_0316.png" type="Texture" id=3]
 [ext_resource path="res://plants/green.png" type="Texture" id=4]
 [ext_resource path="res://plants/mushroom.png" type="Texture" id=5]
+[ext_resource path="res://torch_selected.png" type="Texture" id=6]
+[ext_resource path="res://plants/green_selected.png" type="Texture" id=7]
+[ext_resource path="res://plants/purple_selected.png" type="Texture" id=8]
+[ext_resource path="res://plants/mushroom_selected.png" type="Texture" id=9]
 
 [node name="TextureRect" type="TextureRect"]
 margin_top = -2.0
@@ -24,7 +28,10 @@ margin_top = -8.25574
 margin_right = -628.927
 margin_bottom = -38.2557
 rect_scale = Vector2( 2, 2 )
+toggle_mode = true
+shortcut_in_tooltip = false
 texture_normal = ExtResource( 2 )
+texture_pressed = ExtResource( 8 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -47,7 +54,13 @@ margin_top = -8.256
 margin_right = -568.556
 margin_bottom = -38.256
 rect_scale = Vector2( 2, 2 )
+toggle_mode = true
+shortcut_in_tooltip = false
 texture_normal = ExtResource( 4 )
+texture_pressed = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="count" type="Label" parent="green"]
 margin_left = -4.387
@@ -67,7 +80,10 @@ margin_top = -8.256
 margin_right = -507.499
 margin_bottom = -38.256
 rect_scale = Vector2( 2, 2 )
+toggle_mode = true
+shortcut_in_tooltip = false
 texture_normal = ExtResource( 5 )
+texture_pressed = ExtResource( 9 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -90,7 +106,10 @@ margin_top = 6.802
 margin_right = -445.918
 margin_bottom = -16.198
 rect_scale = Vector2( 1.5, 1.5 )
+toggle_mode = true
+shortcut_in_tooltip = false
 texture_normal = ExtResource( 3 )
+texture_pressed = ExtResource( 6 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

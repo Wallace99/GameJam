@@ -23,7 +23,7 @@ func _process(delta):
 	elif animationPlayer.current_animation_position >= 0 and animationPlayer.current_animation_position <= 4:
 		$Light2D.energy = (5 - animationPlayer.current_animation_position) * 0.1
 	elif animationPlayer.current_animation_position > 4 and animationPlayer.current_animation_position < 25:
-		$Light2D.energy = 0.1
+		$Light2D.energy = 0.0
 	elif animationPlayer.current_animation_position > 35 and animationPlayer.current_animation_position < 55:
 		$Light2D.energy = 1.1
 	if $RayCast2D.is_colliding():
