@@ -9,7 +9,7 @@ var direction = 'left'
 var velocity = Vector2()
 var bouncingBack = false
 const GRAVITY = 5
-const SPEED = 40
+const SPEED = 20
 const JUMP_POWER = -150
 
 
@@ -23,20 +23,25 @@ func _ready():
 #	pass
 
 func _physics_process(delta):
-	if direction == 'left' and $RayCast2D.is_colliding() and !bouncingBack:
+	if direction == 'left':
 		$AnimatedSprite.play("walk")
-		$AnimatedSprite.flip_h = true
+		$AnimatedSprite.flip_h = false
 		velocity.x = -SPEED
 		if $wallCheckLeft.is_colliding():
 			$jumpAudio.play()
 			velocity.y = JUMP_POWER
-	elif direction == 'right' and $RayCast2D.is_colliding() and !bouncingBack:
+	elif direction == 'right':
 		$AnimatedSprite.play("walk")
-		$AnimatedSprite.flip_h = false
+		$AnimatedSprite.flip_h = true
 		velocity.x = SPEED
 		if $wallCheckRight.is_colliding():
 			$jumpAudio.play()
 			velocity.y = JUMP_POWER
+	else:
+		velocity.x = 0
+	
+	if bouncingBack:
+		velocity.x *= 2
 	
 	if !$RayCast2D.is_colliding():
 		velocity.y += GRAVITY
@@ -50,53 +55,46 @@ func connectSignalFromPlayer(signalToConnect, target, function):
 	target.connect(signalToConnect, self, function)
 	
 	
-func bounceBack(body, torch):
-	if body != self or !torch.get_node("Light2D").enabled:
+func getDirection(player_position, plants, _torches, litTorches):
+	print(bouncingBack)
+	if bouncingBack:
+		if player_position.x > global_position.x:
+			direction = 'left'
+		else:
+			direction = 'right'
 		return
-	bouncingBack = true
-	$jumpAudio.play()
-	$bounceBackTimer.start()
-	if torch.global_position.x > global_position.x:
-		velocity.x = -SPEED
-	else:
-		velocity.x = SPEED
-	velocity.y = JUMP_POWER/2
-	if abs(torch.global_position.x - global_position.x) < 20:
-		velocity.x *= 3
-		velocity.y *= 3
-	
-func getDirection(player_position, plants, torches):
-	if plants.size() > 0:
-		var closestPlant = plants[0]
-		if !is_instance_valid(closestPlant):
-			getDirectionNoPlants(player_position)
-			return
-		var distanceToClosest = abs(closestPlant.global_position.x - global_position.x)
-		for plant in plants:
-			var distance = abs(plant.global_position.x - global_position.x)
+	if abs(player_position.x - global_position.x) < 10:
+		bouncingBack = true
+		$bounceBackTimer.start()
+		if player_position.x > global_position.x:
+			direction = 'left'
+		else:
+			direction = 'right'
+		return
+	print(litTorches.size())
+	if litTorches.size() > 0:
+		var closestTorch = litTorches[0]
+		if !is_instance_valid(closestTorch):
+			direction = "stationary"
+			return 
+		var distanceToClosest = abs(closestTorch.global_position.x - global_position.x)
+		for torch in litTorches:
+			var distance = abs(torch.global_position.x - global_position.x)
 			if distance < distanceToClosest:
 				distanceToClosest = distance
-				closestPlant = plant
-		if distanceToClosest < abs(global_position.x - player_position.x):
-			if closestPlant.global_position.x > global_position.x:
-				direction = 'right'
-			else:
-				direction = 'left'
+				closestTorch = torch
+		if closestTorch.global_position.x > global_position.x:
+			direction = 'right'
 		else:
-			getDirectionNoPlants(player_position)
+			direction = 'left'
 	else:
-		getDirectionNoPlants(player_position)
-	for area in get_node("Area2D").get_overlapping_areas():
-		if 'enemyRange' in area.name:
-			bounceBack(self, area.get_parent())
-				
+		direction = "stationary"
 
-
-func getDirectionNoPlants(player_position):
-	if player_position.x > global_position.x:
-		direction = 'right'
-	else:
-		direction = 'left'
+	
 
 func _on_bounceBackTimer_timeout():
 	bouncingBack = false
+	
+	
+func getBouncingBack():
+	return bouncingBack

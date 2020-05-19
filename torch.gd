@@ -5,6 +5,7 @@ extends AnimatedSprite
 # var a = 2
 # var b = "text"
 signal stopTimer
+signal torchOut(torch)
 
 onready var animationPlayer = get_tree().get_root().get_node("Node2D").get_node("AnimationPlayer")
 
@@ -33,6 +34,7 @@ func _process(delta):
 		$RayCast2D.enabled = false
 
 func outOfLight():
+	emit_signal("torchOut", self)
 	emit_signal("stopTimer")
 	play("normal")
 	$Light2D.enabled = false

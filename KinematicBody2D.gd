@@ -10,13 +10,14 @@ var selectedItem = null
 var purpleCount = 0
 var greenCount = 1
 var mushroomCount = 0
-var torchCount = 0
-var lightCount = 0
+var torchCount = 1
+var lightCount = 2
 var food = 100
 var enemies = []
 var specialEnemies = []
 var plants = []
 var torches = []
+var litTorches = []
 var nightCounter = 1
 var overlappedPlantArea = 0
 signal isDay(day)
@@ -275,7 +276,10 @@ func placeTorch(clickPosition):
 	torchInstance.set_position(clickPosition)
 	torchInstance.get_node("Area2D").connect("removed", self, "removeTorch")
 	torchInstance.get_node("Area2D").connect("relight", self, "relightTorch")
+	torchInstance.get_node("Area2D").connect("body_entered", self, "snuffTorch", [torchInstance])
+	torchInstance.connect("torchOut", self, "torchWentOut")
 	torches.append(torchInstance)
+	litTorches.append(torchInstance)
 	for enemy in enemies:
 		enemy.connectEnteredSignalFromPlayer("body_entered", torchInstance.get_node("enemyRange"), "bounceBack", [torchInstance])
 	for body in torchInstance.get_node("Area2D").get_overlapping_bodies():
@@ -288,11 +292,31 @@ func incrementOverlappingPlacing():
 	
 func decrementOverlappingPlacing():
 	overlappedPlantArea -= 1	
+
+func torchWentOut(torch):
+	if torch in litTorches:
+		litTorches.erase(torch)
+	else:
+		print("error removing torch from lit torches")
+
+func snuffTorch(body, torch):
+	print("hello!")
+	if !(body in specialEnemies):
+		return
+	if body.getBouncingBack():
+		return
+	if !(torch in litTorches):
+		return
+	body.get_node("eatAudio").play()
+	torch.emit_signal("stopTimer")
+	torch.play("normal")
+	torch.get_node("Light2D").enabled = false
+	torchWentOut(torch)
+	
 	
 func _eatPlant(plant):
 	food = foodBar.get_value()
 	if food >= 100 or selectedItem != null:
-
 		return
 	if plant in plants:
 		$eatAudio.play()
@@ -319,8 +343,9 @@ func give_seed_back(plant_type):
 		mushroomButtonCount.text = str(mushroomCount)
 
 func removeTorch(torch):
-	if torch in torches:
+	if torch in torches and torch in litTorches:
 		torches.erase(torch)
+		litTorches.erase(torch)
 		torch.queue_free()
 		lightCount += 1
 		lightScore.text = str(lightCount)
@@ -339,6 +364,7 @@ func relightTorch(torch):
 		lightScore.text = str(lightCount)
 		if lightCount > 0:
 			torchButtonCount.text = str(lightCount/2)
+		litTorches.append(torch)
 
 func removeDestroyedPlant(body, plant):
 	if !(body in enemies):
@@ -364,9 +390,9 @@ func placeEnemy(enemyType):
 	var toCloseToLight = true
 	while toCloseToLight:
 		enemyPosition = Vector2(rand_range($Camera2D.limit_left, $Camera2D.limit_right), $Camera2D.limit_top)
-		if torches.size() == 0:
+		if litTorches.size() == 0:
 			toCloseToLight = false
-		for torch in torches:
+		for torch in litTorches:
 			if abs(torch.get_global_position().x - enemyPosition.x) < 50:
 				toCloseToLight = true
 				break
@@ -375,6 +401,7 @@ func placeEnemy(enemyType):
 	if enemyType == "enemy2":
 		var enemyInstance = specialEnemy.instance()
 		enemyInstance.set_position(enemyPosition)
+		enemyInstance.connectSignalFromPlayer("moved", self, "getDirection")
 		specialEnemies.append(enemyInstance)
 		print("special enemy")
 		get_tree().get_root().add_child(enemyInstance)
@@ -429,4 +456,4 @@ func getLightCount():
 	
 
 func _on_PositionUpdateTimer_timeout():
-	emit_signal("moved", global_position, plants, torches)
+	emit_signal("moved", global_position, plants, torches, litTorches)

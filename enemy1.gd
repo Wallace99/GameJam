@@ -66,7 +66,7 @@ func bounceBack(body, torch):
 		velocity.x *= 3
 		velocity.y *= 3
 	
-func getDirection(player_position, plants, torches):
+func getDirection(player_position, plants, torches, _litTorches):
 	if plants.size() > 0:
 		var closestPlant = plants[0]
 		if !is_instance_valid(closestPlant):

@@ -4,8 +4,8 @@
 [ext_resource path="res://enemies/tile_0472.png" type="Texture" id=2]
 [ext_resource path="res://enemies/tile_0471.png" type="Texture" id=3]
 [ext_resource path="res://enemies/tile_0470.png" type="Texture" id=4]
-[ext_resource path="res://sounds/eat_04.ogg" type="AudioStream" id=5]
-[ext_resource path="res://sounds/grunt_04.ogg" type="AudioStream" id=6]
+[ext_resource path="res://sounds/bwah.wav" type="AudioStream" id=5]
+[ext_resource path="res://sounds/monster_05.ogg" type="AudioStream" id=6]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -31,7 +31,7 @@ animation = "walk"
 frame = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 0.0848923, 2.88615 )
+position = Vector2( 0.085, 0 )
 shape = SubResource( 2 )
 
 [node name="RayCast2D" type="RayCast2D" parent="."]
@@ -50,6 +50,7 @@ cast_to = Vector2( -15, 0 )
 collision_mask = 6
 
 [node name="bounceBackTimer" type="Timer" parent="."]
+wait_time = 4.0
 one_shot = true
 
 [node name="Area2D" type="Area2D" parent="."]
