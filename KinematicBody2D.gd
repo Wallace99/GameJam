@@ -23,6 +23,8 @@ var overlappedPlantArea = 0
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
+onready var admob = $"../Admob"
+
 onready var purpleButton = $"../CanvasLayer/NinePatchRect/TextureRect/purple"
 onready var greenButton = $"../CanvasLayer/NinePatchRect/TextureRect/green"
 onready var mushroomButton = $"../CanvasLayer/NinePatchRect/TextureRect/mushroom"
@@ -60,8 +62,13 @@ onready var torch = load("res://torch.tscn")
 onready var enemy = load("res://enemy1.tscn")
 onready var specialEnemy = load("res://enemy2.tscn")
 
+onready var deathPopUp = $"../CanvasLayer/CenterContainer/DeathPopUp"
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	deathPopUp.popup_centered()
+	admob.load_rewarded_video()
+	
 	purpleButtonCount.set_text(str(purpleCount))
 	greenButtonCount.set_text(str(greenCount))
 	mushroomButtonCount.set_text(str(mushroomCount))
@@ -457,3 +464,10 @@ func getLightCount():
 
 func _on_PositionUpdateTimer_timeout():
 	emit_signal("moved", global_position, plants, torches, litTorches)
+	
+
+func showVideo():
+	if admob.is_rewarded_video_loaded():
+		admob.show_rewarded_video()
+
+

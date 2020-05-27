@@ -56,14 +56,13 @@ func connectSignalFromPlayer(signalToConnect, target, function):
 	
 	
 func getDirection(player_position, plants, _torches, litTorches):
-	print(bouncingBack)
 	if bouncingBack:
 		if player_position.x > global_position.x:
 			direction = 'left'
 		else:
 			direction = 'right'
 		return
-	if abs(player_position.x - global_position.x) < 10:
+	if abs(player_position.x - global_position.x) < 100:
 		bouncingBack = true
 		$bounceBackTimer.start()
 		if player_position.x > global_position.x:
@@ -71,7 +70,6 @@ func getDirection(player_position, plants, _torches, litTorches):
 		else:
 			direction = 'right'
 		return
-	print(litTorches.size())
 	if litTorches.size() > 0:
 		var closestTorch = litTorches[0]
 		if !is_instance_valid(closestTorch):

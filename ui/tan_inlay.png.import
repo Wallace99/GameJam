@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/tile_0373.png-b427c90dbed8760938b48a2cda12a0be.stex"
+path="res://.import/tan_inlay.png-3f1188baefa0645f46742576bc2cca13.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tile_0373.png"
-dest_files=[ "res://.import/tile_0373.png-b427c90dbed8760938b48a2cda12a0be.stex" ]
+source_file="res://ui/tan_inlay.png"
+dest_files=[ "res://.import/tan_inlay.png-3f1188baefa0645f46742576bc2cca13.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=true
+flags/filter=false
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=2
