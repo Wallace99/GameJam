@@ -67,7 +67,6 @@ script = ExtResource( 7 )
 
 [node name="Light2D" type="Light2D" parent="."]
 texture = ExtResource( 8 )
-energy = 0.0
 mode = 2
 shadow_enabled = true
 

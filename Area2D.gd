@@ -28,6 +28,8 @@ func _on_Area2D_body_entered(body):
 		get_parent().addSeed(body._getSeedType())
 		seedsInGame -= 1
 		body.queue_free()
+	elif body in get_parent().enemies:
+		get_parent().showDeathPopup()
 
 
 func _on_Timer_timeout():

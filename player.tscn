@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=2]
+[gd_scene load_steps=23 format=2]
 
 [ext_resource path="res://character/tile_0020_1.png" type="Texture" id=1]
 [ext_resource path="res://character/tile_0023.png" type="Texture" id=2]
@@ -18,6 +18,7 @@
 [ext_resource path="res://sounds/coin01.ogg" type="AudioStream" id=16]
 [ext_resource path="res://sounds/eat_01.ogg" type="AudioStream" id=17]
 [ext_resource path="res://sounds/plop.wav" type="AudioStream" id=18]
+[ext_resource path="res://sounds/hurt_04.ogg" type="AudioStream" id=19]
 
 [sub_resource type="CapsuleShape2D" id=1]
 radius = 7.46051
@@ -60,6 +61,7 @@ animations = [ {
 extents = Vector2( 9.9575, 12.9306 )
 
 [node name="player" type="KinematicBody2D"]
+collision_layer = 2049
 script = ExtResource( 7 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -91,6 +93,7 @@ cast_to = Vector2( 0, -15 )
 collision_mask = 2
 
 [node name="Area2D" type="Area2D" parent="."]
+collision_layer = 2048
 script = ExtResource( 12 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
@@ -118,6 +121,10 @@ stream = ExtResource( 17 )
 
 [node name="placeAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource( 18 )
+
+[node name="deathAudio" type="AudioStreamPlayer2D" parent="."]
+pause_mode = 2
+stream = ExtResource( 19 )
 [connection signal="isDay" from="." to="Area2D/Timer" method="_on_KinematicBody2D_isDay"]
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_Area2D_body_entered"]
 [connection signal="timeout" from="Area2D/Timer" to="Area2D" method="_on_Timer_timeout"]

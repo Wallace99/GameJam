@@ -19,7 +19,9 @@ var plants = []
 var torches = []
 var litTorches = []
 var nightCounter = 1
-var overlappedPlantArea = 0
+var overlappedWaterArea = 0
+var overlappedTorchButton = false
+var lives = 3
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
@@ -62,11 +64,10 @@ onready var torch = load("res://torch.tscn")
 onready var enemy = load("res://enemy1.tscn")
 onready var specialEnemy = load("res://enemy2.tscn")
 
-onready var deathPopUp = $"../CanvasLayer/CenterContainer/DeathPopUp"
+onready var deathPopUp = $"../CanvasLayer/DeathPopUp"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	deathPopUp.popup_centered()
 	admob.load_rewarded_video()
 	
 	purpleButtonCount.set_text(str(purpleCount))
@@ -92,11 +93,16 @@ func _ready():
 	greenButton.connect("pressed", self, "_select_green")
 	mushroomButton.connect("pressed", self, "_select_mushroom")
 	torchButton.connect("pressed", self, "_select_torch")
+	torchButton.connect("mouse_entered", self, "overlapTorch")
+	torchButton.connect("mouse_exited", self, "overlapTorch")
 	
 	waterArea1.connect("mouse_entered", self, "incrementOverlappingPlacing")
 	waterArea1.connect("mouse_exited", self, "decrementOverlappingPlacing")
 	waterArea2.connect("mouse_entered", self, "incrementOverlappingPlacing")
 	waterArea2.connect("mouse_exited", self, "decrementOverlappingPlacing")
+	
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").connect("pressed", self, "showVideo")
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton2").connect("pressed", self, "goToMainMenu")
 	
 
 	var plots = get_parent().get_node("plots")
@@ -112,25 +118,14 @@ func _input(event):
 		selectedItem = null
 	
 	if event.is_action_pressed("mouseLeft") and selectedItem == "torch":
-		var clickPosition = get_global_mouse_position()
-		clickPosition.y = 0
-		placeTorch(clickPosition)
-		$placeAudio.play()
-		lightCount -= 2
-		lightScore.text = str(lightCount)
-		if lightCount > 0:
-			torchButtonCount.text = str(lightCount/2)
-		else:
-			torchButtonCount.text = str(0)
-		if lightCount <= 1:
-			torchButton.disabled = true
-			torchButton.pressed = false
-			selectedItem = null
+		attemptToPlaceTorch()
 		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
 	food -= 0.01 * nightCounter
+	if food <= 0:
+		showDeathPopup()
 	foodBar.set_value(int(food))
 	if Input.is_action_pressed("right"):
 		velocity.x = SPEED
@@ -242,8 +237,6 @@ func placePlant(plot):
 	plantInstance.set_position(placementPosition)
 	plot.setPlant(plantInstance)
 	plantInstance.set_plot(plot)
-	plantInstance.get_node("spacingArea").connect("mouse_entered", self, "incrementOverlappingPlacing")
-	plantInstance.get_node("spacingArea").connect("mouse_exited", self, "decrementOverlappingPlacing")
 	plantInstance.get_node("Area2D").connect("eaten", self, "_eatPlant")
 	plantInstance.get_node("Area2D").connect("body_entered", self, "removeDestroyedPlant", [plantInstance])
 	plants.append(plantInstance)
@@ -277,6 +270,24 @@ func incrementPlantCount():
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
 	
+func attemptToPlaceTorch():
+	var clickPosition = get_global_mouse_position()
+	if overlappedWaterArea or overlappedTorchButton:
+		return
+	clickPosition.y = 0
+	placeTorch(clickPosition)
+	$placeAudio.play()
+	lightCount -= 2
+	lightScore.text = str(lightCount)
+	if lightCount > 0:
+		torchButtonCount.text = str(lightCount/2)
+	else:
+		torchButtonCount.text = str(0)
+	if lightCount <= 1:
+		torchButton.disabled = true
+		torchButton.pressed = false
+		selectedItem = null	
+	
 	
 func placeTorch(clickPosition):
 	var torchInstance = torch.instance()
@@ -295,10 +306,16 @@ func placeTorch(clickPosition):
 	get_tree().get_root().add_child(torchInstance)
 	
 func incrementOverlappingPlacing():
-	overlappedPlantArea += 1
+	overlappedWaterArea += 1
 	
 func decrementOverlappingPlacing():
-	overlappedPlantArea -= 1	
+	overlappedWaterArea -= 1	
+	
+func overlapTorch():
+	if overlappedTorchButton:
+		overlappedTorchButton = false
+	else:
+		overlappedTorchButton = true
 
 func torchWentOut(torch):
 	if torch in litTorches:
@@ -307,7 +324,6 @@ func torchWentOut(torch):
 		print("error removing torch from lit torches")
 
 func snuffTorch(body, torch):
-	print("hello!")
 	if !(body in specialEnemies):
 		return
 	if body.getBouncingBack():
@@ -334,7 +350,6 @@ func _eatPlant(plant):
 		plant.queue_free()
 		food += plant.get_growth()
 		foodBar.set_value(food)
-		overlappedPlantArea -= 1
 	else:
 		print("Error: plant not in plants list")
 
@@ -357,6 +372,7 @@ func removeTorch(torch):
 		lightCount += 1
 		lightScore.text = str(lightCount)
 		torchButtonCount.text = str(lightCount/2)
+		print("removed torch")
 	else:
 		print("Error: torch not in torch list")
 	
@@ -426,9 +442,9 @@ func _despawnEnemies():
 	for enemy in enemies:
 		enemy.queue_free()
 	enemies = []
-	#for enemy1 in specialEnemies:
-	#	enemy1.queue_free()
-	#specialEnemies = []
+	for enemy1 in specialEnemies:
+		enemy1.queue_free()
+	specialEnemies = []
 	
 func incrementDay():
 	nightCounter += 1
@@ -470,4 +486,18 @@ func showVideo():
 	if admob.is_rewarded_video_loaded():
 		admob.show_rewarded_video()
 
-
+func goToMainMenu():
+	get_tree().paused = false
+	get_tree().change_scene("res://MainMenu.tscn")
+	
+	
+func showDeathPopup():
+	print("dead")
+	get_tree().paused = true
+	$deathAudio.play()
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton/Label").text = str(lives) + " left"
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
+	lives -= 1
+	while $deathAudio.playing:
+		pass
+	deathPopUp.popup_centered()
