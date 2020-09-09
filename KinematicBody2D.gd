@@ -22,8 +22,11 @@ var nightCounter = 1
 var overlappedWaterArea = 0
 var overlappedTorchButton = false
 var lives = 3
+var eatFoodMessageShown = false
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
+
+onready var plots = get_parent().get_node("plots")
 
 onready var admob = $"../Admob"
 
@@ -32,14 +35,16 @@ onready var greenButton = $"../CanvasLayer/NinePatchRect/TextureRect/green"
 onready var mushroomButton = $"../CanvasLayer/NinePatchRect/TextureRect/mushroom"
 onready var torchButton = $"../CanvasLayer/NinePatchRect/TextureRect/torch"
 
-onready var foodBar = $"../CanvasLayer/GUI/HBoxContainer/Bars/Bar/Gauge"
+onready var foodBar = $"../CanvasLayer/GUI/VBoxContainer/HBoxContainer/Bars/Bar/Gauge"
+onready var eatFoodLabel = $"../CanvasLayer/GUI/VBoxContainer/EatFoodLabel"
+onready var eatFoodAnimationPlayer = $"../CanvasLayer/GUI/AnimationPlayer"
 
 onready var purpleButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/purple/count"
 onready var greenButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/green/count"
 onready var mushroomButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/mushroom/count"
 onready var torchButtonCount = $"../CanvasLayer/NinePatchRect/TextureRect/torch/count"
 
-onready var lightScore = $"../CanvasLayer/GUI/HBoxContainer/Counters/Counter/Background/Number"
+onready var lightScore = $"../CanvasLayer/GUI/VBoxContainer/HBoxContainer/Counters/Counter/Background/Number"
 onready var dayMessage = $"../CanvasLayer/DayAnnoucement"
 
 onready var purpleImage = load("res://plants/purple.png")
@@ -105,9 +110,11 @@ func _ready():
 	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton2").connect("pressed", self, "goToMainMenu")
 	
 
-	var plots = get_parent().get_node("plots")
+	
 	for i in plots.get_children():
 		i.get_node("Area2D").connect("placed", self, "placePlant")
+		i.get_node("Area2D").connect("mouse_entered", self, "setMouseInPlot", [i])
+		i.get_node("Area2D").connect("mouse_exited", self, "setMouseInPlot", [i])
 	
 
 func _input(event):
@@ -126,6 +133,10 @@ func _physics_process(delta):
 	food -= 0.01 * nightCounter
 	if food <= 0:
 		showDeathPopup()
+	elif food <= 25 and !eatFoodMessageShown:
+		showEatFood()
+	elif eatFoodMessageShown:
+		hideEatFood()
 	foodBar.set_value(int(food))
 	if Input.is_action_pressed("right"):
 		velocity.x = SPEED
@@ -271,6 +282,9 @@ func incrementPlantCount():
 			selectedItem = null
 	
 func attemptToPlaceTorch():
+	for plot in plots.get_children():
+		if plot.mouseInArea:
+			return
 	var clickPosition = get_global_mouse_position()
 	if overlappedWaterArea or overlappedTorchButton:
 		return
@@ -476,7 +490,12 @@ func addLight():
 	
 func getLightCount():
 	return lightCount
-	
+
+func setMouseInPlot(plot):
+	if plot.mouseInArea:
+		plot.mouseInArea = false
+	else:
+		plot.mouseInArea = true
 
 func _on_PositionUpdateTimer_timeout():
 	emit_signal("moved", global_position, plants, torches, litTorches)
@@ -486,16 +505,35 @@ func showVideo():
 	if admob.is_rewarded_video_loaded():
 		admob.show_rewarded_video()
 
+func clearItems():
+	for plant in plants:
+		plant.get_plot().setPlant(null)
+		plants.erase(plant)
+		plant.queue_free()
+	for torch in torches:
+		torches.erase(torch)
+		if torch in litTorches:
+			litTorches.erase(torch)
+		torch.queue_free()
+
 func goToMainMenu():
+	clearItems()
+	_despawnEnemies()
 	get_tree().paused = false
 	get_tree().change_scene("res://MainMenu.tscn")
 	
+func showEatFood():
+	eatFoodLabel.visible = true
+	eatFoodMessageShown = true
+	
+func hideEatFood():
+	eatFoodLabel.visible = false
+	eatFoodMessageShown = false
 	
 func showDeathPopup():
-	print("dead")
 	get_tree().paused = true
 	$deathAudio.play()
-	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton/Label").text = str(lives) + " left"
+	deathPopUp.get_node("Control/VBoxContainer/Label3").text = "You have " + str(lives) + " lives remaining..."
 	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
 	lives -= 1
 	while $deathAudio.playing:

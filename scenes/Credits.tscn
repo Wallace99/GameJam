@@ -1,0 +1,154 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://menu.png" type="Texture" id=1]
+[ext_resource path="res://fonts/Kenney Pixel Square.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://fonts/Kenney Pixel.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://MainMenu.gd" type="Script" id=5]
+
+[sub_resource type="DynamicFont" id=1]
+size = 24
+font_data = ExtResource( 2 )
+
+[sub_resource type="DynamicFont" id=2]
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 8
+font_data = ExtResource( 2 )
+
+[sub_resource type="DynamicFont" id=4]
+size = 8
+font_data = ExtResource( 2 )
+
+[node name="MainMenu" type="Node2D"]
+pause_mode = 2
+script = ExtResource( 5 )
+
+[node name="Background" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+centered = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_right = 320.0
+margin_bottom = 180.0
+custom_constants/separation = 6
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+margin_right = 320.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+custom_colors/font_outline_modulate = Color( 1, 1, 1, 1 )
+custom_colors/font_color_shadow = Color( 0.745098, 0.560784, 0.560784, 1 )
+text = "Credits"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 42.0
+margin_right = 320.0
+margin_bottom = 156.0
+alignment = 1
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer"]
+margin_left = 27.0
+margin_right = 293.0
+margin_bottom = 114.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer2"]
+margin_right = 266.0
+margin_bottom = 36.0
+custom_constants/separation = 0
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer"]
+margin_right = 266.0
+margin_bottom = 12.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "Artwork - Kenny's Platformer Art: Pixel Redux"
+
+[node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer"]
+margin_top = 12.0
+margin_right = 266.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "                       - Kenny's Pixel UI Pack"
+
+[node name="Label3" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer"]
+margin_top = 24.0
+margin_right = 266.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "                       - Kenny's Game Icons"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer2"]
+margin_top = 40.0
+margin_right = 266.0
+margin_bottom = 64.0
+custom_constants/separation = 0
+
+[node name="Label4" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer2"]
+margin_right = 266.0
+margin_bottom = 12.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "Music        - Kevin Macleod's Industrious Ferret"
+
+[node name="Label5" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer2"]
+margin_top = 12.0
+margin_right = 266.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "                       - Kevin Macleod's The Path of the Goblin King"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer2"]
+margin_top = 68.0
+margin_right = 266.0
+margin_bottom = 92.0
+custom_constants/separation = 0
+
+[node name="Label4" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer3"]
+margin_right = 266.0
+margin_bottom = 12.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "Sound FX - OwlishMedia Sound Effects"
+
+[node name="Label5" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer2/VBoxContainer3"]
+margin_top = 12.0
+margin_right = 266.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "                       - RubberDuck Creature Sound Effects"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer2"]
+margin_top = 96.0
+margin_right = 266.0
+margin_bottom = 114.0
+alignment = 1
+
+[node name="MenuButton" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer2/HBoxContainer"]
+margin_left = 55.0
+margin_right = 145.0
+margin_bottom = 18.0
+custom_fonts/font = SubResource( 3 )
+text = "Return to Menu"
+
+[node name="PreviousButton2" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer2/HBoxContainer"]
+margin_left = 149.0
+margin_right = 211.0
+margin_bottom = 18.0
+custom_fonts/font = SubResource( 4 )
+text = "Next Page"
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer2/HBoxContainer/MenuButton" to="." method="_on_Button_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer2/HBoxContainer/PreviousButton2" to="." method="_on_NextButton2_pressed"]

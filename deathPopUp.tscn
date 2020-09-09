@@ -27,50 +27,60 @@ __meta__ = {
 }
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
-margin_right = 340.0
-margin_bottom = 200.0
+margin_right = 375.0
+margin_bottom = 244.0
 texture = ExtResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-margin_left = 15.0
-margin_right = 320.0
-margin_bottom = 195.0
+margin_left = 29.0264
+margin_top = 12.9475
+margin_right = 337.026
+margin_bottom = 223.947
+custom_constants/separation = 0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-margin_right = 308.0
+margin_right = 324.0
 margin_bottom = 36.0
 alignment = 1
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer"]
-margin_left = 32.0
-margin_right = 176.0
+margin_left = 40.0
+margin_right = 184.0
 margin_bottom = 36.0
 custom_fonts/font = SubResource( 1 )
 text = "Survived:"
 
 [node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer"]
-margin_left = 180.0
-margin_right = 276.0
+margin_left = 188.0
+margin_right = 284.0
 margin_bottom = 36.0
 custom_fonts/font = SubResource( 2 )
 text = "0 Days"
 
+[node name="Label3" type="Label" parent="VBoxContainer"]
+margin_top = 36.0
+margin_right = 324.0
+margin_bottom = 60.0
+custom_fonts/font = SubResource( 3 )
+text = "You have 3 lives remaining..."
+align = 1
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer"]
-margin_top = 40.0
-margin_right = 308.0
-margin_bottom = 140.0
+margin_top = 60.0
+margin_right = 324.0
+margin_bottom = 160.0
 custom_constants/separation = 50
 alignment = 1
 
 [node name="TextureButton" type="TextureButton" parent="VBoxContainer/HBoxContainer2"]
-margin_left = 29.0
-margin_right = 129.0
+margin_left = 37.0
+margin_right = 137.0
 margin_bottom = 100.0
 texture_normal = ExtResource( 1 )
 
@@ -85,33 +95,18 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer2/TextureButton"]
-anchor_left = -0.00288544
-anchor_top = -1.52588e-07
-anchor_right = -0.00288544
-anchor_bottom = -1.52588e-07
-margin_left = 85.0
-margin_top = 61.7313
-margin_right = 97.0
-margin_bottom = 85.7313
-custom_fonts/font = SubResource( 3 )
-text = "3 Left"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="TextureButton2" type="TextureButton" parent="VBoxContainer/HBoxContainer2"]
-margin_left = 179.0
-margin_right = 279.0
+margin_left = 187.0
+margin_right = 287.0
 margin_bottom = 100.0
 texture_normal = ExtResource( 4 )
 
 [node name="Label" type="Label" parent="VBoxContainer"]
-margin_top = 144.0
-margin_right = 308.0
-margin_bottom = 195.0
+margin_top = 160.0
+margin_right = 324.0
+margin_bottom = 211.0
 custom_fonts/font = SubResource( 4 )
-text = "Watch video and get rewarded
+text = "Watch a video and get rewarded
 with a new life!"
 align = 1
 valign = 1
