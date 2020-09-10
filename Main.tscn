@@ -18,9 +18,9 @@
 [ext_resource path="res://sounds/industrious-ferret.ogg" type="AudioStream" id=16]
 [ext_resource path="res://sounds/the-path-of-the-goblin-king.ogg" type="AudioStream" id=17]
 [ext_resource path="res://dayAudioPlayer.gd" type="Script" id=18]
-[ext_resource path="res://ui/arrowRight.png" type="Texture" id=19]
-[ext_resource path="res://ui/arrowUp.png" type="Texture" id=20]
-[ext_resource path="res://ui/arrowLeft.png" type="Texture" id=21]
+[ext_resource path="res://ui/shadedLight26.png" type="Texture" id=19]
+[ext_resource path="res://ui/shadedLight25.png" type="Texture" id=20]
+[ext_resource path="res://ui/shadedLight24.png" type="Texture" id=21]
 [ext_resource path="res://plot.tscn" type="PackedScene" id=22]
 [ext_resource path="res://admob-lib/admob.gd" type="Script" id=23]
 [ext_resource path="res://deathPopUp.tscn" type="PackedScene" id=24]
@@ -241,27 +241,31 @@ __meta__ = {
 }
 
 [node name="leftButton" type="TouchScreenButton" parent="CanvasLayer"]
+modulate = Color( 0.572549, 0.572549, 0.572549, 0.666667 )
 position = Vector2( 15, 120 )
-scale = Vector2( 0.5, 0.5 )
+scale = Vector2( 0.4, 0.4 )
 normal = ExtResource( 21 )
 action = "left"
 
 [node name="rightButton" type="TouchScreenButton" parent="CanvasLayer"]
+modulate = Color( 0.572549, 0.572549, 0.572549, 0.666667 )
 position = Vector2( 265, 120 )
-scale = Vector2( 0.5, 0.5 )
-normal = ExtResource( 19 )
+scale = Vector2( 0.4, 0.4 )
+normal = ExtResource( 20 )
 action = "right"
 
 [node name="jumpButton" type="TouchScreenButton" parent="CanvasLayer"]
+modulate = Color( 0.572549, 0.572549, 0.572549, 0.666667 )
 position = Vector2( 265, 75 )
-scale = Vector2( 0.5, 0.5 )
-normal = ExtResource( 20 )
+scale = Vector2( 0.4, 0.4 )
+normal = ExtResource( 19 )
 action = "jump"
 
 [node name="jumpButton2" type="TouchScreenButton" parent="CanvasLayer"]
+modulate = Color( 0.572549, 0.572549, 0.572549, 0.666667 )
 position = Vector2( 15, 75 )
-scale = Vector2( 0.5, 0.5 )
-normal = ExtResource( 20 )
+scale = Vector2( 0.4, 0.4 )
+normal = ExtResource( 19 )
 action = "jump"
 
 [node name="DeathPopUp" type="Popup" parent="CanvasLayer"]
@@ -328,7 +332,7 @@ tile_data = PoolIntArray( 25, 11, 0, 41, 1, 0, 65541, 536870923, 0, 65560, 53687
 color = Color( 0.839216, 0.619608, 0.243137, 1 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-playback_speed = 2.0
+playback_speed = 0.5
 anims/day_night_cycle = SubResource( 2 )
 
 [node name="Water2D" type="Sprite" parent="."]
@@ -389,8 +393,37 @@ volume_db = -20.0
 [node name="plot" parent="plots" instance=ExtResource( 22 )]
 position = Vector2( 169.672, 141.576 )
 
+[node name="plot2" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 192.236, 140.957 )
+
+[node name="plot3" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 294.304, 141.57 )
+
+[node name="plot4" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 379.197, 119.979 )
+
+[node name="plot5" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 508.824, 143.631 )
+
+[node name="plot6" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 559.924, 142.644 )
+
+[node name="plot7" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 818.183, 101.015 )
+
+[node name="plot8" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 844.61, 98.4063 )
+
+[node name="plot9" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 891.709, 99.1957 )
+
+[node name="plot10" parent="plots" instance=ExtResource( 22 )]
+position = Vector2( 1048.51, 141.61 )
+
 [node name="Admob" type="Node" parent="."]
 script = ExtResource( 23 )
 rewarded_id = "ca-app-pub-3940256099942544/5224354917"
 max_ad_content_rate = "PG"
+[connection signal="mouse_entered" from="CanvasLayer/NinePatchRect" to="KinematicBody2D" method="_on_NinePatchRect_mouse_entered"]
+[connection signal="mouse_exited" from="CanvasLayer/NinePatchRect" to="KinematicBody2D" method="_on_NinePatchRect_mouse_exited"]
 [connection signal="rewarded_video_failed_to_load" from="Admob" to="KinematicBody2D" method="_on_Admob_rewarded_video_failed_to_load"]

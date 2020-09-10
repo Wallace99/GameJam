@@ -6,6 +6,7 @@ extends Area2D
 # var b = "text"
 var mouseInEatArea = false
 signal eaten(plant)
+signal destroyed(plant)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -21,3 +22,8 @@ func _input_event(viewport, event, shape_idx):
 		emit_signal("eaten", get_parent())
 
 
+
+
+func _on_Area2D_body_entered(body):
+	if "enemy" in body.name:
+		emit_signal("destroyed", get_parent())

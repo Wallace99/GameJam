@@ -17,12 +17,18 @@ var enemies = []
 var specialEnemies = []
 var plants = []
 var torches = []
+var lights = []
+var seeds = []
 var litTorches = []
 var nightCounter = 1
 var overlappedWaterArea = 0
 var overlappedTorchButton = false
+var overlappedGreenButton = false
+var overlappedPurpleButton = false
+var overlappedMushroomButton = false
 var lives = 3
 var eatFoodMessageShown = false
+var ad_loaded = false
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
@@ -95,11 +101,21 @@ func _ready():
 		torchButton.pressed = false
 
 	purpleButton.connect("pressed", self, "_select_purple")
+	purpleButton.connect("mouse_entered", self, "overlapPurple")
+	purpleButton.connect("mouse_exited", self, "overlapPurple")
 	greenButton.connect("pressed", self, "_select_green")
+	greenButton.connect("mouse_entered", self, "overlapGreen")
+	greenButton.connect("mouse_exited", self, "overlapGreen")
 	mushroomButton.connect("pressed", self, "_select_mushroom")
+	mushroomButton.connect("mouse_entered", self, "overlapMushroom")
+	mushroomButton.connect("mouse_exited", self, "overlapMushroom")
 	torchButton.connect("pressed", self, "_select_torch")
 	torchButton.connect("mouse_entered", self, "overlapTorch")
 	torchButton.connect("mouse_exited", self, "overlapTorch")
+	
+	admob.connect("rewarded", self, "_on_rewarded")
+	admob.connect("rewarded_video_failed_to_load", self, "_on_rewarded_video_ad_failed_to_load")
+	admob.connect("rewarded_video_loaded", self, "_on_rewarded_video_ad_loaded")
 	
 	waterArea1.connect("mouse_entered", self, "incrementOverlappingPlacing")
 	waterArea1.connect("mouse_exited", self, "decrementOverlappingPlacing")
@@ -115,6 +131,8 @@ func _ready():
 		i.get_node("Area2D").connect("placed", self, "placePlant")
 		i.get_node("Area2D").connect("mouse_entered", self, "setMouseInPlot", [i])
 		i.get_node("Area2D").connect("mouse_exited", self, "setMouseInPlot", [i])
+		
+	_start_light_timer()
 	
 
 func _input(event):
@@ -130,12 +148,12 @@ func _input(event):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
-	food -= 0.01 * nightCounter
+	food -= 0.01 * (nightCounter * 0.6)
 	if food <= 0:
 		showDeathPopup()
 	elif food <= 25 and !eatFoodMessageShown:
 		showEatFood()
-	elif eatFoodMessageShown:
+	elif food > 25 and eatFoodMessageShown:
 		hideEatFood()
 	foodBar.set_value(int(food))
 	if Input.is_action_pressed("right"):
@@ -249,7 +267,7 @@ func placePlant(plot):
 	plot.setPlant(plantInstance)
 	plantInstance.set_plot(plot)
 	plantInstance.get_node("Area2D").connect("eaten", self, "_eatPlant")
-	plantInstance.get_node("Area2D").connect("body_entered", self, "removeDestroyedPlant", [plantInstance])
+	plantInstance.get_node("Area2D").connect("destroyed", self, "removeDestroyedPlant")
 	plants.append(plantInstance)
 	get_tree().get_root().add_child(plantInstance)
 	incrementPlantCount()
@@ -286,7 +304,7 @@ func attemptToPlaceTorch():
 		if plot.mouseInArea:
 			return
 	var clickPosition = get_global_mouse_position()
-	if overlappedWaterArea or overlappedTorchButton:
+	if overlappedWaterArea or overlappedTorchButton or overlappedGreenButton or overlappedPurpleButton or overlappedMushroomButton:
 		return
 	clickPosition.y = 0
 	placeTorch(clickPosition)
@@ -330,6 +348,24 @@ func overlapTorch():
 		overlappedTorchButton = false
 	else:
 		overlappedTorchButton = true
+		
+func overlapGreen():
+	if overlappedGreenButton:
+		overlappedGreenButton = false
+	else:
+		overlappedGreenButton = true
+	
+func overlapPurple():
+	if overlappedPurpleButton:
+		overlappedPurpleButton = false
+	else:
+		overlappedPurpleButton = true
+	
+func overlapMushroom():
+	if overlappedMushroomButton:
+		overlappedMushroomButton = false
+	else:
+		overlappedMushroomButton = true
 
 func torchWentOut(torch):
 	if torch in litTorches:
@@ -358,7 +394,7 @@ func _eatPlant(plant):
 	if plant in plants:
 		$eatAudio.play()
 		if plant.get_growth() > 10:
-			give_seed_back(plant.get_plant_type())
+			addSeed(plant.get_plant_type())
 		plant.get_plot().setPlant(null)
 		plants.erase(plant)
 		plant.queue_free()
@@ -366,17 +402,6 @@ func _eatPlant(plant):
 		foodBar.set_value(food)
 	else:
 		print("Error: plant not in plants list")
-
-func give_seed_back(plant_type):
-	if plant_type == 'green' and greenCount < 10:
-		greenCount += 1
-		greenButtonCount.text = str(greenCount)
-	elif plant_type == 'purple' and purpleCount < 10:
-		purpleCount += 1
-		purpleButtonCount.text = str(purpleCount)
-	elif plant_type == 'mushroom' and mushroomCount < 10:
-		mushroomCount += 1
-		mushroomButtonCount.text = str(mushroomCount)
 
 func removeTorch(torch):
 	if torch in torches and torch in litTorches:
@@ -403,22 +428,20 @@ func relightTorch(torch):
 			torchButtonCount.text = str(lightCount/2)
 		litTorches.append(torch)
 
-func removeDestroyedPlant(body, plant):
-	if !(body in enemies):
-		return
+func removeDestroyedPlant(plant):
 	if plant in plants:
-		body.get_node("eatAudio").play()
+		get_node("eatAudio").play()
 		plant.get_plot().setPlant(null)
 		plants.erase(plant)
 		plant.queue_free()
 	else:
 		print("Error: plant not in plants list")
-		print(plants)
 
 func _spawnEnemies():
-	for i in range(nightCounter * 2):
-		placeEnemy("enemy1")
+	var enemy2Count = int((nightCounter - 1) * 0.5)
 	for i in range(nightCounter):
+		placeEnemy("enemy1")
+	for i in range(enemy2Count):
 		placeEnemy("enemy2")
 	
 func placeEnemy(enemyType):
@@ -504,20 +527,11 @@ func _on_PositionUpdateTimer_timeout():
 func showVideo():
 	if admob.is_rewarded_video_loaded():
 		admob.show_rewarded_video()
-
-func clearItems():
-	for plant in plants:
-		plant.get_plot().setPlant(null)
-		plants.erase(plant)
-		plant.queue_free()
-	for torch in torches:
-		torches.erase(torch)
-		if torch in litTorches:
-			litTorches.erase(torch)
-		torch.queue_free()
+	
 
 func goToMainMenu():
-	clearItems()
+	for i in get_tree().get_root().get_children():
+		i.queue_free()
 	_despawnEnemies()
 	get_tree().paused = false
 	get_tree().change_scene("res://MainMenu.tscn")
@@ -531,11 +545,44 @@ func hideEatFood():
 	eatFoodMessageShown = false
 	
 func showDeathPopup():
+	_stop_light_timer()
 	get_tree().paused = true
 	$deathAudio.play()
-	deathPopUp.get_node("Control/VBoxContainer/Label3").text = "You have " + str(lives) + " lives remaining..."
-	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
-	lives -= 1
+	if ad_loaded:
+		print("ad loaded")
+		deathPopUp.get_node("Control/VBoxContainer/Label3").show()
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").show()
+		deathPopUp.get_node("Control/VBoxContainer/Label").show()
+		
+		deathPopUp.get_node("Control/VBoxContainer/Label3").text = "You have " + str(lives) + " lives remaining..."
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
+		lives -= 1
+	else:
+		print("ad not loaded")
+		deathPopUp.get_node("Control/VBoxContainer/Label3").hide()
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").hide()
+		deathPopUp.get_node("Control/VBoxContainer/Label").hide()
+	if lives < 0:
+		print("out of lives")
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").hide()
+		deathPopUp.get_node("Control/VBoxContainer/Label").hide()
 	while $deathAudio.playing:
 		pass
 	deathPopUp.popup_centered()
+	
+func _on_rewarded(currency, amount):
+	_despawnEnemies()
+	admob.load_rewarded_video()
+	food = 100
+	foodBar.set_value(int(food))
+	deathPopUp.hide()
+	get_tree().paused = false
+	
+
+func _on_rewarded_video_ad_failed_to_load(errorCode):
+	ad_loaded = false
+
+func _on_rewarded_video_ad_loaded():
+	ad_loaded = true
+	
+
