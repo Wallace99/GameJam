@@ -26,9 +26,11 @@ var overlappedTorchButton = false
 var overlappedGreenButton = false
 var overlappedPurpleButton = false
 var overlappedMushroomButton = false
+var overlappedControls = false
 var lives = 3
 var eatFoodMessageShown = false
 var ad_loaded = false
+var placedInRange = false
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
@@ -133,6 +135,7 @@ func _ready():
 		i.get_node("Area2D").connect("mouse_exited", self, "setMouseInPlot", [i])
 		
 	_start_light_timer()
+
 	
 
 func _input(event):
@@ -141,6 +144,7 @@ func _input(event):
 		velocity.y = JUMP_POWER
 	if event.is_action_pressed("mouseRight"):
 		selectedItem = null
+		$PlacingArea.visible = false
 	
 	if event.is_action_pressed("mouseLeft") and selectedItem == "torch":
 		attemptToPlaceTorch()
@@ -195,11 +199,14 @@ func _select_purple():
 	if selectedItem == "purple":
 		purpleButton.pressed = false
 		selectedItem = null
+		$PlacingArea.visible = false
+		return
 	if purpleCount > 0:
 		greenButton.pressed = false
 		mushroomButton.pressed = false
 		torchButton.pressed = false
 		selectedItem = "purple"
+		$PlacingArea.visible = true
 	else:
 		purpleButton.pressed = false
 
@@ -208,12 +215,14 @@ func _select_green():
 	if selectedItem == "green":
 		greenButton.pressed = false
 		selectedItem = null
+		$PlacingArea.visible = false
 		return
 	if greenCount > 0:
 		purpleButton.pressed = false
 		mushroomButton.pressed = false
 		torchButton.pressed = false
 		selectedItem = "green"
+		$PlacingArea.visible = true
 	else:
 		greenButton.pressed = false
 
@@ -222,12 +231,14 @@ func _select_mushroom():
 	if selectedItem == "mushroom":
 		mushroomButton.pressed = false
 		selectedItem = null
+		$PlacingArea.visible = false
 		return
 	if mushroomCount > 0:
 		purpleButton.pressed = false
 		greenButton.pressed = false
 		torchButton.pressed = false
 		selectedItem = "mushroom"
+		$PlacingArea.visible = true
 	else:
 		mushroomButton.pressed = false
 
@@ -236,19 +247,23 @@ func _select_torch():
 	if selectedItem == "torch":
 		torchButton.pressed = false
 		selectedItem = null
+		$PlacingArea.visible = false
 		return
 	if lightCount > 1:
 		purpleButton.pressed = false
 		greenButton.pressed = false
 		mushroomButton.pressed = false
 		selectedItem = "torch"
+		$PlacingArea.visible = true
 	else:
 		torchButton.pressed = false
 
 
 
 func placePlant(plot):
-	if selectedItem == null or plot.getPlant() != null:
+	if !placedInRange:
+		return
+	if selectedItem == null or plot.getPlant() != null or selectedItem == 'torch':
 		return
 	$placeAudio.play()
 	var placementPosition = plot.global_position
@@ -282,6 +297,7 @@ func incrementPlantCount():
 			purpleButton.pressed = false
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
+			$PlacingArea.visible = false
 	elif selectedItem == "green":
 		greenCount -= 1
 		greenButtonCount.text = str(greenCount)
@@ -290,6 +306,7 @@ func incrementPlantCount():
 			greenButton.pressed = false
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
+			$PlacingArea.visible = false
 	elif selectedItem == "mushroom":
 		mushroomCount -= 1
 		mushroomButtonCount.text = str(mushroomCount)
@@ -298,12 +315,15 @@ func incrementPlantCount():
 			mushroomButton.pressed = false
 			Input.set_custom_mouse_cursor(null)
 			selectedItem = null
+			$PlacingArea.visible = false
 	
 func attemptToPlaceTorch():
 	for plot in plots.get_children():
 		if plot.mouseInArea:
 			return
 	var clickPosition = get_global_mouse_position()
+	if !placedInRange:
+		return
 	if overlappedWaterArea or overlappedTorchButton or overlappedGreenButton or overlappedPurpleButton or overlappedMushroomButton:
 		return
 	clickPosition.y = 0
@@ -318,16 +338,17 @@ func attemptToPlaceTorch():
 	if lightCount <= 1:
 		torchButton.disabled = true
 		torchButton.pressed = false
-		selectedItem = null	
+		selectedItem = null
+		$PlacingArea.visible = false
 	
 	
 func placeTorch(clickPosition):
 	var torchInstance = torch.instance()
 	torchInstance.set_position(clickPosition)
-	torchInstance.get_node("Area2D").connect("removed", self, "removeTorch")
 	torchInstance.get_node("Area2D").connect("relight", self, "relightTorch")
-	torchInstance.get_node("Area2D").connect("body_entered", self, "snuffTorch", [torchInstance])
+	torchInstance.get_node("Area2D").connect("snuffed", self, "snuffTorch")
 	torchInstance.connect("torchOut", self, "torchWentOut")
+	torchInstance.connect("removed", self, "removeTorch")
 	torches.append(torchInstance)
 	litTorches.append(torchInstance)
 	for enemy in enemies:
@@ -373,14 +394,9 @@ func torchWentOut(torch):
 	else:
 		print("error removing torch from lit torches")
 
-func snuffTorch(body, torch):
-	if !(body in specialEnemies):
-		return
-	if body.getBouncingBack():
-		return
+func snuffTorch(torch):
 	if !(torch in litTorches):
 		return
-	body.get_node("eatAudio").play()
 	torch.emit_signal("stopTimer")
 	torch.play("normal")
 	torch.get_node("Light2D").enabled = false
@@ -388,6 +404,9 @@ func snuffTorch(body, torch):
 	
 	
 func _eatPlant(plant):
+	var clickPosition = get_global_mouse_position()
+	if abs(clickPosition.x - global_position.x) > 30 or clickPosition.y > global_position.y + 15:
+		return
 	food = foodBar.get_value()
 	if food >= 100 or selectedItem != null:
 		return
@@ -404,13 +423,9 @@ func _eatPlant(plant):
 		print("Error: plant not in plants list")
 
 func removeTorch(torch):
-	if torch in torches and torch in litTorches:
+	if torch in torches:
 		torches.erase(torch)
-		litTorches.erase(torch)
 		torch.queue_free()
-		lightCount += 1
-		lightScore.text = str(lightCount)
-		torchButtonCount.text = str(lightCount/2)
 		print("removed torch")
 	else:
 		print("Error: torch not in torch list")
@@ -419,6 +434,8 @@ func removeTorch(torch):
 func relightTorch(torch):
 	if lightCount > 0 and selectedItem == null:
 		torch.get_node("TextureProgress").value = 100
+		torch.get_node("disappearTimer").stop()
+		torch.get_node("Node2D").visible = false
 		torch.get_node("Timer").start()
 		torch.play("burn")
 		torch.get_node("Light2D").enabled = true
@@ -586,3 +603,11 @@ func _on_rewarded_video_ad_loaded():
 	ad_loaded = true
 	
 
+
+
+func _on_Area2D2_mouse_entered():
+	placedInRange = true
+
+
+func _on_Area2D2_mouse_exited():
+	placedInRange = false

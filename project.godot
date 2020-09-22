@@ -10,12 +10,12 @@ config_version=4
 
 _global_script_classes=[ {
 "base": "Node",
-"class": "Admob",
+"class": "AdMob",
 "language": "GDScript",
 "path": "res://admob-lib/admob.gd"
 } ]
 _global_script_class_icons={
-"Admob": "res://admob-lib/icon.png"
+"AdMob": "res://admob-lib/icon.png"
 }
 
 [android]
@@ -24,9 +24,10 @@ modules="org/godotengine/godot/GodotAdMob"
 
 [application]
 
-config/name="GameJam"
+config/name="Plant and Survive"
 run/main_scene="res://MainMenu.tscn"
 config/icon="res://icon.png"
+config/quit_on_go_back=false
 
 [display]
 
@@ -63,7 +64,7 @@ mouseRight={
 }
 mouseLeft={
 "deadzone": 0.5,
-"events": [ Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"button_mask":0,"position":Vector2( 0, 0 ),"global_position":Vector2( 0, 0 ),"factor":1.0,"button_index":1,"pressed":false,"doubleclick":false,"script":null)
+"events": [ Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"button_mask":0,"position":Vector2( 0, 0 ),"global_position":Vector2( 0, 0 ),"factor":1.0,"button_index":1,"pressed":false,"doubleclick":false,"script":null)
  ]
 }
 right={

@@ -39,10 +39,15 @@ func _on_GrowTimer_timeout():
 			setPlantImage(plant_type)
 		print("plant grew")
 	else:
+		$Node2D/Label.text = "Eat me"
+		$Node2D.visible = true
+		$Node2D/AnimationPlayer.play("flicker")
 		get_node("GrowTimer").stop()
 
 func setPlantImage(plantType):
 	plant_type = plantType 
+	if sizes.size() == 0:
+		return
 	if growth <= 5:
 		set_texture(sizes[0])
 		set_offset(Vector2(0, 5))

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://character/tile_0020_1.png" type="Texture" id=1]
 [ext_resource path="res://character/tile_0023.png" type="Texture" id=2]
@@ -26,16 +26,6 @@ height = 7.79165
 
 [sub_resource type="SpriteFrames" id=2]
 animations = [ {
-"frames": [ ExtResource( 5 ) ],
-"loop": true,
-"name": "suprise",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 2 ) ],
-"loop": true,
-"name": "hurt",
-"speed": 5.0
-}, {
 "frames": [ ExtResource( 9 ), ExtResource( 10 ) ],
 "loop": true,
 "name": "climb",
@@ -51,6 +41,16 @@ animations = [ {
 "name": "walk",
 "speed": 5.0
 }, {
+"frames": [ ExtResource( 5 ) ],
+"loop": true,
+"name": "suprise",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "hurt",
+"speed": 5.0
+}, {
 "frames": [ ExtResource( 3 ), ExtResource( 6 ), ExtResource( 3 ), ExtResource( 1 ) ],
 "loop": true,
 "name": "idle",
@@ -59,6 +59,9 @@ animations = [ {
 
 [sub_resource type="RectangleShape2D" id=3]
 extents = Vector2( 9.9575, 12.9306 )
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 30.297, 12.0992 )
 
 [node name="player" type="KinematicBody2D"]
 collision_layer = 2049
@@ -125,7 +128,22 @@ stream = ExtResource( 18 )
 [node name="deathAudio" type="AudioStreamPlayer2D" parent="."]
 pause_mode = 2
 stream = ExtResource( 19 )
+
+[node name="PlacingArea" type="Area2D" parent="."]
+visible = false
+
+[node name="PlacingShape" type="CollisionShape2D" parent="PlacingArea"]
+light_mask = 0
+position = Vector2( 0, -0.098 )
+shape = SubResource( 4 )
+
+[node name="Polygon2D" type="Polygon2D" parent="PlacingArea/PlacingShape"]
+show_behind_parent = true
+color = Color( 0.133333, 0.756863, 0.0627451, 0.282353 )
+polygon = PoolVector2Array( -30, 12, -30, -12, 30, -12, 30, 12 )
 [connection signal="isDay" from="." to="Area2D/Timer" method="_on_KinematicBody2D_isDay"]
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_Area2D_body_entered"]
 [connection signal="timeout" from="Area2D/Timer" to="Area2D" method="_on_Timer_timeout"]
 [connection signal="timeout" from="PositionUpdateTimer" to="." method="_on_PositionUpdateTimer_timeout"]
+[connection signal="mouse_entered" from="PlacingArea" to="." method="_on_Area2D2_mouse_entered"]
+[connection signal="mouse_exited" from="PlacingArea" to="." method="_on_Area2D2_mouse_exited"]

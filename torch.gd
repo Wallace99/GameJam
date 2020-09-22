@@ -6,6 +6,7 @@ extends AnimatedSprite
 # var b = "text"
 signal stopTimer
 signal torchOut(torch)
+signal removed(torch)
 
 onready var animationPlayer = get_tree().get_root().get_node("Node2D").get_node("AnimationPlayer")
 
@@ -39,3 +40,11 @@ func outOfLight():
 	emit_signal("stopTimer")
 	play("normal")
 	$Light2D.enabled = false
+	$Node2D/Label.text = "Tap to relight"
+	$Node2D.visible = true
+	$Node2D/AnimationPlayer.play("flicker")
+	$disappearTimer.start(10)
+
+
+func _on_disappearTimer_timeout():
+	emit_signal("removed", self)
