@@ -26,11 +26,6 @@ height = 7.79165
 
 [sub_resource type="SpriteFrames" id=2]
 animations = [ {
-"frames": [ ExtResource( 9 ), ExtResource( 10 ) ],
-"loop": true,
-"name": "climb",
-"speed": 5.0
-}, {
 "frames": [ ExtResource( 8 ) ],
 "loop": true,
 "name": "stoop",
@@ -49,6 +44,11 @@ animations = [ {
 "frames": [ ExtResource( 2 ) ],
 "loop": true,
 "name": "hurt",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 9 ), ExtResource( 10 ) ],
+"loop": true,
+"name": "climb",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 3 ), ExtResource( 6 ), ExtResource( 3 ), ExtResource( 1 ) ],
@@ -145,5 +145,6 @@ polygon = PoolVector2Array( -30, 12, -30, -12, 30, -12, 30, 12 )
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_Area2D_body_entered"]
 [connection signal="timeout" from="Area2D/Timer" to="Area2D" method="_on_Timer_timeout"]
 [connection signal="timeout" from="PositionUpdateTimer" to="." method="_on_PositionUpdateTimer_timeout"]
+[connection signal="input_event" from="PlacingArea" to="." method="_on_PlacingArea_input_event"]
 [connection signal="mouse_entered" from="PlacingArea" to="." method="_on_Area2D2_mouse_entered"]
 [connection signal="mouse_exited" from="PlacingArea" to="." method="_on_Area2D2_mouse_exited"]

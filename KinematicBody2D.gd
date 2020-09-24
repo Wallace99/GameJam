@@ -22,10 +22,6 @@ var seeds = []
 var litTorches = []
 var nightCounter = 1
 var overlappedWaterArea = 0
-var overlappedTorchButton = false
-var overlappedGreenButton = false
-var overlappedPurpleButton = false
-var overlappedMushroomButton = false
 var overlappedControls = false
 var lives = 3
 var eatFoodMessageShown = false
@@ -103,17 +99,9 @@ func _ready():
 		torchButton.pressed = false
 
 	purpleButton.connect("pressed", self, "_select_purple")
-	purpleButton.connect("mouse_entered", self, "overlapPurple")
-	purpleButton.connect("mouse_exited", self, "overlapPurple")
 	greenButton.connect("pressed", self, "_select_green")
-	greenButton.connect("mouse_entered", self, "overlapGreen")
-	greenButton.connect("mouse_exited", self, "overlapGreen")
 	mushroomButton.connect("pressed", self, "_select_mushroom")
-	mushroomButton.connect("mouse_entered", self, "overlapMushroom")
-	mushroomButton.connect("mouse_exited", self, "overlapMushroom")
 	torchButton.connect("pressed", self, "_select_torch")
-	torchButton.connect("mouse_entered", self, "overlapTorch")
-	torchButton.connect("mouse_exited", self, "overlapTorch")
 	
 	admob.connect("rewarded", self, "_on_rewarded")
 	admob.connect("rewarded_video_failed_to_load", self, "_on_rewarded_video_ad_failed_to_load")
@@ -146,8 +134,6 @@ func _input(event):
 		selectedItem = null
 		$PlacingArea.visible = false
 	
-	if event.is_action_pressed("mouseLeft") and selectedItem == "torch":
-		attemptToPlaceTorch()
 		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -261,8 +247,9 @@ func _select_torch():
 
 
 func placePlant(plot):
-	if !placedInRange:
-		return
+	var clickPosition = get_global_mouse_position()
+	if abs(clickPosition.x - global_position.x) > 30 or abs(clickPosition.y - global_position.y) > 12:
+		return 
 	if selectedItem == null or plot.getPlant() != null or selectedItem == 'torch':
 		return
 	$placeAudio.play()
@@ -318,14 +305,7 @@ func incrementPlantCount():
 			$PlacingArea.visible = false
 	
 func attemptToPlaceTorch():
-	for plot in plots.get_children():
-		if plot.mouseInArea:
-			return
 	var clickPosition = get_global_mouse_position()
-	if !placedInRange:
-		return
-	if overlappedWaterArea or overlappedTorchButton or overlappedGreenButton or overlappedPurpleButton or overlappedMushroomButton:
-		return
 	clickPosition.y = 0
 	placeTorch(clickPosition)
 	$placeAudio.play()
@@ -363,30 +343,6 @@ func incrementOverlappingPlacing():
 	
 func decrementOverlappingPlacing():
 	overlappedWaterArea -= 1	
-	
-func overlapTorch():
-	if overlappedTorchButton:
-		overlappedTorchButton = false
-	else:
-		overlappedTorchButton = true
-		
-func overlapGreen():
-	if overlappedGreenButton:
-		overlappedGreenButton = false
-	else:
-		overlappedGreenButton = true
-	
-func overlapPurple():
-	if overlappedPurpleButton:
-		overlappedPurpleButton = false
-	else:
-		overlappedPurpleButton = true
-	
-func overlapMushroom():
-	if overlappedMushroomButton:
-		overlappedMushroomButton = false
-	else:
-		overlappedMushroomButton = true
 
 func torchWentOut(torch):
 	if torch in litTorches:
@@ -611,3 +567,8 @@ func _on_Area2D2_mouse_entered():
 
 func _on_Area2D2_mouse_exited():
 	placedInRange = false
+
+
+func _on_PlacingArea_input_event(viewport, event, shape_idx):
+	if event.is_action_pressed("mouseLeft") and selectedItem == "torch":
+		attemptToPlaceTorch()
