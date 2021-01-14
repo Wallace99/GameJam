@@ -15,4 +15,4 @@ A 2D side scroller made using the Godot game engine. Aim of the game is to survi
 The game is currently published on the Google Play Store [here](https://play.google.com/store/apps/details?id=org.godotengine.gamejam)
 You can also run it on computer by downloading and importing the project into Godot. 
 **Images**
-![pic alt](https://github.com/Wallace99/GameJam/controls.png)
+![pic alt](https://github.com/Wallace99/GameJam/blob/master/controls.png)
