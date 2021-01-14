@@ -5,6 +5,7 @@ const SPEED = 60
 const GRAVITY = 5
 const JUMP_POWER = -150
 const FLOOR_DETECT_DISTANCE = 20.0
+const LEADERBOARD_ID = "CgkIm-rjr6cEEAIQAA"
 var collision
 var selectedItem = null
 var purpleCount = 0
@@ -27,6 +28,16 @@ var lives = 3
 var eatFoodMessageShown = false
 var ad_loaded = false
 var placedInRange = false
+var play_games_services
+var submittedScore = false
+var firstTutorial = true
+var itemPlaceTutorial = true
+var eatPlantTutorial = true
+var collectLightTutorial = true
+var avoidMonsterTutorial = true
+var avoidOtherMonsterTutorial = true
+var toast
+
 signal isDay(day)
 signal moved(globalPosition, plants, torches)
 
@@ -74,10 +85,27 @@ onready var enemy = load("res://enemy1.tscn")
 onready var specialEnemy = load("res://enemy2.tscn")
 
 onready var deathPopUp = $"../CanvasLayer/DeathPopUp"
+onready var helpPopUp = $"../CanvasLayer/HelpPopup"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	admob.load_rewarded_video()
+	loadSettings()
+	if(Engine.has_singleton("GodotToast")):
+		toast = Engine.get_singleton("GodotToast")
+	
+	if Engine.has_singleton("GodotPlayGamesServices"):
+		play_games_services = Engine.get_singleton("GodotPlayGamesServices")
+		var show_popups := true 
+		play_games_services.init(show_popups)
+		play_games_services.connect("_on_sign_in_success", self, "_on_sign_in_success") # account_id: String
+		play_games_services.connect("_on_sign_in_failed", self, "_on_sign_in_failed") # error_code: int
+		play_games_services.connect("_on_leaderboard_score_submitted", self, "_on_leaderboard_score_submitted") # leaderboard_id: String
+		play_games_services.connect("_on_leaderboard_score_submitting_failed", self, "_on_leaderboard_score_submitting_failed") # leaderboard_id: String
+	else:
+		print("play services not connected")
+		if toast:
+			toast.sendToast("Could not connect to Google Play Services")
 	
 	purpleButtonCount.set_text(str(purpleCount))
 	greenButtonCount.set_text(str(greenCount))
@@ -114,6 +142,7 @@ func _ready():
 	
 	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").connect("pressed", self, "showVideo")
 	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton2").connect("pressed", self, "goToMainMenu")
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton3").connect("pressed", self, "signIntoLeaderboard")
 	
 
 	
@@ -138,7 +167,7 @@ func _input(event):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
-	food -= 0.01 * (nightCounter * 0.6)
+	food -= 0.01 * (nightCounter * 0.4)
 	if food <= 0:
 		showDeathPopup()
 	elif food <= 25 and !eatFoodMessageShown:
@@ -164,6 +193,14 @@ func _physics_process(delta):
 	if !$RayCast2D.is_colliding():
 		$AnimatedSprite.play("suprise")
 		velocity.y += GRAVITY
+		velocity.y = min(velocity.y, 120)
+	else:
+		if firstTutorial:
+			firstTutorial = false
+			updateSetting("first-tutorial", "0")
+			var helpText = """Welcome!
+	Start off your first day by collecting any seeds or light that fall from the sky"""
+			showHelpPopup(helpText)
 	
 		
 		
@@ -193,6 +230,7 @@ func _select_purple():
 		torchButton.pressed = false
 		selectedItem = "purple"
 		$PlacingArea.visible = true
+		showClickItemTutorial()
 	else:
 		purpleButton.pressed = false
 
@@ -209,6 +247,7 @@ func _select_green():
 		torchButton.pressed = false
 		selectedItem = "green"
 		$PlacingArea.visible = true
+		showClickItemTutorial()
 	else:
 		greenButton.pressed = false
 
@@ -225,6 +264,7 @@ func _select_mushroom():
 		torchButton.pressed = false
 		selectedItem = "mushroom"
 		$PlacingArea.visible = true
+		showClickItemTutorial()
 	else:
 		mushroomButton.pressed = false
 
@@ -241,6 +281,7 @@ func _select_torch():
 		mushroomButton.pressed = false
 		selectedItem = "torch"
 		$PlacingArea.visible = true
+		showClickItemTutorial()
 	else:
 		torchButton.pressed = false
 
@@ -273,6 +314,7 @@ func placePlant(plot):
 	plants.append(plantInstance)
 	get_tree().get_root().add_child(plantInstance)
 	incrementPlantCount()
+	showEatPlantTutorial()
 		
 		
 func incrementPlantCount():
@@ -374,6 +416,7 @@ func _eatPlant(plant):
 		plants.erase(plant)
 		plant.queue_free()
 		food += plant.get_growth()
+		food = min(food, 100)
 		foodBar.set_value(food)
 	else:
 		print("Error: plant not in plants list")
@@ -411,7 +454,11 @@ func removeDestroyedPlant(plant):
 		print("Error: plant not in plants list")
 
 func _spawnEnemies():
+	if nightCounter == 1:
+		showAvoidMonsterTutorial()
 	var enemy2Count = int((nightCounter - 1) * 0.5)
+	if enemy2Count > 0:
+		showAvoidOtherMonsterTutorial()
 	for i in range(nightCounter):
 		placeEnemy("enemy1")
 	for i in range(enemy2Count):
@@ -483,6 +530,7 @@ func addLight():
 	torchButtonCount.text = str(lightCount / 2)
 	if lightCount > 1:
 		torchButton.disabled = false
+	showCollectLightTutorial()
 	
 func getLightCount():
 	return lightCount
@@ -503,6 +551,10 @@ func showVideo():
 	
 
 func goToMainMenu():
+	if play_games_services.isSignedIn():
+		play_games_services.submitLeaderBoardScore(LEADERBOARD_ID, nightCounter)
+		if toast:
+			toast.sendToast("Submitting high score")
 	for i in get_tree().get_root().get_children():
 		i.queue_free()
 	_despawnEnemies()
@@ -521,6 +573,12 @@ func showDeathPopup():
 	_stop_light_timer()
 	get_tree().paused = true
 	$deathAudio.play()
+	if !play_games_services.isSignedIn():
+		deathPopUp.get_node("Control/AnimationPlayer").play("flash")
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton3").show()
+	else:
+		deathPopUp.get_node("Control/AnimationPlayer").stop()
+		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton3").hide()
 	if ad_loaded:
 		print("ad loaded")
 		deathPopUp.get_node("Control/VBoxContainer/Label3").show()
@@ -528,17 +586,25 @@ func showDeathPopup():
 		deathPopUp.get_node("Control/VBoxContainer/Label").show()
 		
 		deathPopUp.get_node("Control/VBoxContainer/Label3").text = "You have " + str(lives) + " lives remaining..."
-		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
 		lives -= 1
 	else:
 		print("ad not loaded")
 		deathPopUp.get_node("Control/VBoxContainer/Label3").hide()
 		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").hide()
 		deathPopUp.get_node("Control/VBoxContainer/Label").hide()
+		if play_games_services.isSignedIn():
+			play_games_services.submitLeaderBoardScore(LEADERBOARD_ID, nightCounter)
+			if toast:
+				toast.sendToast("Submitting high score")
 	if lives < 0:
 		print("out of lives")
 		deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton").hide()
 		deathPopUp.get_node("Control/VBoxContainer/Label").hide()
+		if play_games_services.isSignedIn():
+			play_games_services.submitLeaderBoardScore(LEADERBOARD_ID, nightCounter)
+			if toast:
+				toast.sendToast("Submitting high score")
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer/Label2").text = str(nightCounter) + " days"
 	while $deathAudio.playing:
 		pass
 	deathPopUp.popup_centered()
@@ -554,12 +620,12 @@ func _on_rewarded(currency, amount):
 
 func _on_rewarded_video_ad_failed_to_load(errorCode):
 	ad_loaded = false
+	if toast:
+		toast.sendToast("Could not load reward video with error code: " + str(errorCode))
 
 func _on_rewarded_video_ad_loaded():
 	ad_loaded = true
 	
-
-
 
 func _on_Area2D2_mouse_entered():
 	placedInRange = true
@@ -572,3 +638,105 @@ func _on_Area2D2_mouse_exited():
 func _on_PlacingArea_input_event(viewport, event, shape_idx):
 	if event.is_action_pressed("mouseLeft") and selectedItem == "torch":
 		attemptToPlaceTorch()
+	
+
+func _on_sign_in_success(account_id: String) -> void:
+	print("success")
+	deathPopUp.get_node("Control/AnimationPlayer").stop()
+	deathPopUp.get_node("Control/VBoxContainer/HBoxContainer2/TextureButton3").hide()
+  
+func _on_sign_in_failed(error_code: int) -> void:
+	print("failed")
+	print(error_code)
+	if toast:
+		toast.sendToast("Sign in failed with error code: " + str(error_code))
+
+func _on_leaderboard_score_submitted(leaderboard_id: String):
+	print("successfully submitted score")
+
+func _on_leaderboard_score_submitting_failed(leaderboard_id: String):
+	print("error submitting score")
+	if toast:
+		toast.sendToast("Error submitting to leaderboard")
+		
+func signIntoLeaderboard():
+	if toast:
+		toast.sendToast("Attempting to sign in to Google Play Services")
+	play_games_services.signIn()
+		
+
+
+func showHelpPopup(text):
+	helpPopUp.get_node("Label").text = text
+	_stop_light_timer()
+	get_tree().paused = true
+	helpPopUp.popup_centered()
+
+func _on_HelpPopup_popup_hide():
+	_start_light_timer()
+	get_tree().paused = false
+
+func loadSettings():
+	var config = ConfigFile.new()
+	var err = config.load("user://configuration.ini")
+	if err == OK:
+		firstTutorial = parseSetting("first-tutorial", config)
+		itemPlaceTutorial = parseSetting("item-place-tutorial", config)
+		eatPlantTutorial = parseSetting("eat-plant-tutorial", config)
+		collectLightTutorial = parseSetting("collect-light-tutorial", config)
+		avoidMonsterTutorial = parseSetting("avoid-monster-tutorial", config)
+		avoidOtherMonsterTutorial = parseSetting("avoid-other-monster-tutorial", config)
+			
+func parseSetting(setting, config):
+	var settingVal = config.get_value("Config", setting, "1")
+	if settingVal == "1":
+		return true
+	else:
+		return false
+		
+func updateSetting(setting, newValue):
+	var config = ConfigFile.new()
+	var err = config.load("user://configuration.ini")
+	if err == OK:
+		config.set_value("Config", setting, newValue)
+	config.save("user://configuration.ini")
+			
+func showClickItemTutorial():
+	if itemPlaceTutorial:
+		itemPlaceTutorial = false
+		updateSetting("item-place-tutorial", "0")
+		var helpText = """Tap to place a selected item!
+	The green box indicates your range. Plants can only be placed on the brown plots"""
+		showHelpPopup(helpText)
+
+func showEatPlantTutorial():
+	if eatPlantTutorial:
+		eatPlantTutorial = false
+		updateSetting("eat-plant-tutorial", "0")
+		var helpText = """Tap on a plant to eat it!
+		The longer a plant has been growing the more hunger it will fill. Plants are fully grown when the 'eat me' message is shown"""
+		showHelpPopup(helpText)
+
+func showCollectLightTutorial():
+	if collectLightTutorial:
+		collectLightTutorial = false
+		updateSetting("collect-light-tutorial", "0")
+		var helpText = """Collect stars for light!
+		Use two light to place one torch. Use one light to relight a torch"""
+		showHelpPopup(helpText)
+
+func showAvoidMonsterTutorial():
+	if avoidMonsterTutorial:
+		avoidMonsterTutorial = false
+		updateSetting("avoid-monster-tutorial", "0")
+		var helpText = """Night is falling!
+		Monsters will come in the night and try eat you or your plants. Place torches to keep them at bay"""
+		showHelpPopup(helpText)
+
+func showAvoidOtherMonsterTutorial():
+	if avoidOtherMonsterTutorial:
+		avoidOtherMonsterTutorial = false
+		updateSetting("avoid-other-monster-tutorial", "0")
+		var helpText = """Night is falling!
+		Tonight a new monster will come that can put out torches. It will run from you though so keep an eye on your torches"""
+		showHelpPopup(helpText)

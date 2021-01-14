@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=2]
+[gd_scene load_steps=34 format=2]
 
 [ext_resource path="res://grass_tiles_v2.tres" type="TileSet" id=1]
 [ext_resource path="res://backgrounds/blue.png" type="Texture" id=2]
@@ -24,11 +24,21 @@
 [ext_resource path="res://plot.tscn" type="PackedScene" id=22]
 [ext_resource path="res://admob-lib/admob.gd" type="Script" id=23]
 [ext_resource path="res://deathPopUp.tscn" type="PackedScene" id=24]
+[ext_resource path="res://fonts/Kenney Pixel.ttf" type="DynamicFontData" id=25]
 
 [sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 15 )
 
-[sub_resource type="Animation" id=2]
+[sub_resource type="DynamicFont" id=2]
+font_data = ExtResource( 25 )
+
+[sub_resource type="Theme" id=3]
+default_font = SubResource( 2 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.82, 0.73882, 0.5494, 1 )
+
+[sub_resource type="Animation" id=5]
 length = 65.0
 loop = true
 step = 0.05
@@ -167,13 +177,13 @@ tracks/8/keys = {
 "values": [ -20.0, 0.0, 0.0, -20.0 ]
 }
 
-[sub_resource type="RectangleShape2D" id=3]
+[sub_resource type="RectangleShape2D" id=6]
 extents = Vector2( 31.8018, 171.59 )
 
-[sub_resource type="RectangleShape2D" id=4]
+[sub_resource type="RectangleShape2D" id=7]
 extents = Vector2( 25.367, 170.35 )
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=8]
 length = 10.0
 tracks/0/type = "value"
 tracks/0/path = NodePath("CanvasLayer/DayAnnoucement:modulate")
@@ -293,6 +303,25 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="HelpPopup" type="PopupDialog" parent="CanvasLayer"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -50.0
+margin_top = -30.0
+margin_right = 50.0
+margin_bottom = 30.0
+theme = SubResource( 3 )
+custom_styles/panel = SubResource( 4 )
+
+[node name="Label" type="Label" parent="CanvasLayer/HelpPopup"]
+margin_right = 160.0
+margin_bottom = 95.0
+rect_scale = Vector2( 0.6, 0.6 )
+text = "Tutorial stuff about how to do something"
+autowrap = true
+
 [node name="KinematicBody2D" parent="." instance=ExtResource( 3 )]
 position = Vector2( 134.155, 111.976 )
 z_index = -1
@@ -333,7 +362,7 @@ color = Color( 0.839216, 0.619608, 0.243137, 1 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 playback_speed = 0.5
-anims/day_night_cycle = SubResource( 2 )
+anims/day_night_cycle = SubResource( 5 )
 
 [node name="Water2D" type="Sprite" parent="."]
 material = ExtResource( 10 )
@@ -353,7 +382,7 @@ wave_time_attenuation = 0.0
 [node name="Area2D" type="Area2D" parent="Water2D"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Water2D/Area2D"]
-shape = SubResource( 3 )
+shape = SubResource( 6 )
 
 [node name="Water2D2" type="Sprite" parent="."]
 material = ExtResource( 10 )
@@ -373,10 +402,10 @@ wave_time_attenuation = 0.0
 [node name="Area2D" type="Area2D" parent="Water2D2"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Water2D2/Area2D"]
-shape = SubResource( 4 )
+shape = SubResource( 7 )
 
 [node name="FadeInOut" type="AnimationPlayer" parent="."]
-anims/fadeText = SubResource( 5 )
+anims/fadeText = SubResource( 8 )
 script = ExtResource( 8 )
 
 [node name="dayAudioPlayer" type="AudioStreamPlayer" parent="."]
@@ -423,8 +452,10 @@ position = Vector2( 1048.51, 141.61 )
 [node name="Admob" type="Node" parent="."]
 script = ExtResource( 23 )
 is_real = true
-rewarded_id = "ca-app-pub-3940256099942544/5224354917"
+banner_id = "ca-app-pub-2933436225647768/3752342944"
+rewarded_id = "ca-app-pub-2933436225647768/9450197309"
 max_ad_content_rate = "PG"
 [connection signal="mouse_entered" from="CanvasLayer/NinePatchRect" to="KinematicBody2D" method="_on_NinePatchRect_mouse_entered"]
 [connection signal="mouse_exited" from="CanvasLayer/NinePatchRect" to="KinematicBody2D" method="_on_NinePatchRect_mouse_exited"]
+[connection signal="popup_hide" from="CanvasLayer/HelpPopup" to="KinematicBody2D" method="_on_HelpPopup_popup_hide"]
 [connection signal="rewarded_video_failed_to_load" from="Admob" to="KinematicBody2D" method="_on_Admob_rewarded_video_failed_to_load"]

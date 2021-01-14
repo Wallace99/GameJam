@@ -25,5 +25,6 @@ func _input_event(viewport, event, shape_idx):
 
 
 func _on_Area2D_body_entered(body):
-	if "enemy" in body.name:
+	print(body.name)
+	if body.name == "enemy":
 		emit_signal("destroyed", get_parent())
