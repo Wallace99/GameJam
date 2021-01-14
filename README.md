@@ -23,3 +23,5 @@ Images
 ======
 
 ![pic alt](https://github.com/Wallace99/GameJam/blob/master/controls.png)
+
+Also be warned the code is a bit of a mess in parts, as is the project structure. It started out as a 48 hour game jam submission and needs a good refactor 
