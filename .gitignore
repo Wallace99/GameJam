@@ -1,4 +1,5 @@
 *.apk
-*.ogg
 *.keystore
 android/
+.import/
+*.import
